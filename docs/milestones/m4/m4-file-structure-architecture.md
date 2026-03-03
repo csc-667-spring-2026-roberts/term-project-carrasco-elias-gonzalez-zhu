@@ -8,6 +8,45 @@ newly added files for M4.
 
 ------------------------------------------------------------------------
 
+## Project Structure
+
+term-project/
+
+term-project/
+├── src/
+│   └── index.ts                                    # Express app entry point (NEW)
+│
+├── public/
+│   ├── index.html                                  # Static homepage (NEW)
+│   └── styles.css                                  # Basic styling (NEW)
+│
+├── docs/
+│   └── milestones/
+│       └── m4/
+│           ├── m4-local-setup.md                   # Local setup instructions (NEW)
+│           ├── m4-slides-link.md                   # Presentation link (NEW)
+│           └── m4-file-structure-architecture.md   # Architecture documentation (NEW)
+│
+├── database/
+├── views/
+│
+├── .husky/
+│
+├── .editorconfig                                   # Formatting rules (NEW)
+├── .gitattributes                                  # Line ending normalization (NEW)
+├── .gitignore
+├── .nvmrc                                          # Node version lock (NEW)
+├── .env.example
+├── .prettierrc
+│
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+├── eslint.config.js
+└── README.md
+
+------------------------------------------------------------------------
+
 ## Project Root
 
     term-project-carrasco-elias-gonzalez-zhu/
@@ -24,6 +63,7 @@ newly added files for M4.
     package-lock.json          # Locked dependency tree (used by npm ci)
     tsconfig.json              # TypeScript configuration
     eslint.config.js           # ESLint configuration
+    .prettierrc                # Prettier configuration
 
 ------------------------------------------------------------------------
 
@@ -60,8 +100,9 @@ code consistency across team.
       index.html               # (NEW) Main static page
       styles.css               # (NEW) Basic styling
 
-Purpose: - Demonstrates Express static file serving - Provides visual
-confirmation server is running
+Purpose: 
+- Demonstrates Express static file serving 
+- Provides visual confirmation server is running
 
 ------------------------------------------------------------------------
 
@@ -70,9 +111,9 @@ confirmation server is running
     docs/
       milestones/
         m4/
-          m4-local-setup.md       # Setup & verification instructions
-          slides-link.md       # Link to presentation slides
-          file-structure-architecture.md  # This document
+          m4-local-setup.md               # (NEW) Setup & verification instructions
+          slides-link.md                  # (NEW) Link to presentation slides
+          file-structure-architecture.md  # (NEW) This document
 
 ------------------------------------------------------------------------
 

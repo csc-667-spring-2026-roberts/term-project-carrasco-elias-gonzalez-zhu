@@ -9,7 +9,7 @@ This guide ensures every team member can clone the M4 branch and verify it runs 
 
 ## Quick Setup
 
-### 1) Clone + switch to the m4 branch
+### 1) Clone, switch to the m4 branch, pull
 
 Clone **once** on your machine:
 
@@ -17,12 +17,12 @@ Clone **once** on your machine:
 git clone https://github.com/csc-667-spring-2026-roberts/term-project-carrasco-elias-gonzalez-zhu.git
 ```
 
-Change directory and swtich to m4 branch:
+Change directory, swtich to m4 branch, and pull latest changes:
 ``` bash
 cd term-project-carrasco-elias-gonzalez-zhu
 git checkout m4
+git pull
 ```
-
 
 ### 2) Use Node 20 (Required)
 
