@@ -1,6 +1,6 @@
 # M4 (Slides Link)
 
-**CSC 667 Term Project**
+**CSC 667 Term Project**\
 **Milestone: M4 (Express Setup)**
 
 This document include Google Slides link and Presenter Notes.

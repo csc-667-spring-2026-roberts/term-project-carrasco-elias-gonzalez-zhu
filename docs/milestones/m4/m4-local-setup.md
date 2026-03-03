@@ -1,6 +1,6 @@
 # M4 (Local Setup & Verification Guide)
 
-**CSC 667 Term Project**
+**CSC 667 Term Project**\
 **Milestone: M4 (Express Setup)**
 
 This guide ensures every team member can clone the M4 branch and verify it runs locally.
