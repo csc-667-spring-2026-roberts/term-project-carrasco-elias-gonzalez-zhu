@@ -10,9 +10,8 @@ newly added files for M4.
 
 ## Project Structure
 
-term-project/
-
-term-project/
+```
+term-project-carrasco-elias-gonzalez-zhu/
 ├── src/
 │   └── index.ts                                    # Express app entry point (NEW)
 │
@@ -44,14 +43,13 @@ term-project/
 ├── tsconfig.json
 ├── eslint.config.js
 └── README.md
+```
 
 ------------------------------------------------------------------------
 
 ## Project Root
 
     term-project-carrasco-elias-gonzalez-zhu/
-
-------------------------------------------------------------------------
 
 ## Configuration Files
 
@@ -64,8 +62,7 @@ term-project/
     tsconfig.json              # TypeScript configuration
     eslint.config.js           # ESLint configuration
     .prettierrc                # Prettier configuration
-
-------------------------------------------------------------------------
+    .env.example               # Environment variable template
 
 ## Husky
 
@@ -73,10 +70,9 @@ term-project/
       pre-commit               # Runs lint-staged before commits
       _/                       # Husky internal hook helpers
 
-Purpose: - Enforces linting and formatting before commits. - Maintains
-code consistency across team.
-
-------------------------------------------------------------------------
+Purpose: 
+-   Enforces linting and formatting before commits. 
+-   Maintains code consistency across team.
 
 ## Source Code (Backend)
 
@@ -92,8 +88,6 @@ code consistency across team.
 -   Defines `GET /health` route
 -   Starts server on PORT
 
-------------------------------------------------------------------------
-
 ## Public (Frontend)
 
     public/
@@ -101,10 +95,8 @@ code consistency across team.
       styles.css               # (NEW) Basic styling
 
 Purpose: 
-- Demonstrates Express static file serving 
-- Provides visual confirmation server is running
-
-------------------------------------------------------------------------
+-   Demonstrates Express static file serving 
+-   Provides visual confirmation server is running
 
 ## Documentation
 
@@ -114,7 +106,8 @@ Purpose:
           m4-local-setup.md               # (NEW) Setup & verification instructions
           slides-link.md                  # (NEW) Link to presentation slides
           file-structure-architecture.md  # (NEW) This document
-
+    README.md                             # Project overview
+    
 ------------------------------------------------------------------------
 
 ## Summary
