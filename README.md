@@ -1,4 +1,4 @@
-# Team Name — Game Name
+# Team Hearts — Hearts
 
 CSC 667 Term Project — Spring 2026
 
@@ -6,10 +6,10 @@ CSC 667 Term Project — Spring 2026
 
 | Name | GitHub | Email |
 |------|--------|-------|
-| Member 1 | @username | email@sfsu.edu |
-| Member 2 | @username | email@sfsu.edu |
-| Member 3 | @username | email@sfsu.edu |
-| Member 4 | @username | email@sfsu.edu |
+| Zoe Elias | @zoebowe | zelias@sfsu.edu |
+| Marbella Carrasco | @marbedc | mcarrasco@sfsu.edu |
+| Breanna Zhu | @zbreanna | szhu@sfsu.edu |
+| Jonathan Gonzalez | @JGonzalez650 | jgonzalez7@sfsu.edu |
 
 ## Setup
 
