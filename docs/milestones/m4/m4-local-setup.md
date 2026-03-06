@@ -64,7 +64,7 @@ git config --global core.autocrlf input
 ```
 
 **Windows:**
-```bash*
+```bash
 git config --global core.autocrlf true
 ```
 
@@ -108,12 +108,6 @@ npm run dev
 Open on browser: **http://localhost:3000**
 
 After testing, use a **keyboard shortcut** to **stop the server**:
-
-- **macOS / Linux:**
-```code
-Control^ + C
-```
-- **Windows:**
 ```code
 Ctrl + C
 ```
