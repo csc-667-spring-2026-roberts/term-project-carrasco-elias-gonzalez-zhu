@@ -122,6 +122,15 @@ npm run build
 
 This confirms TypeScript compiles successfully and ensures the project builds cleanly.
 
+### 8) Lint & Format Check (Recommended)
+
+Verify code quality tools are working:
+
+```bash
+npm run lint
+npm run format
+```
+
 ------------------------------------------------------------------------
 
 ## Sanity Checklist (Must Pass)
