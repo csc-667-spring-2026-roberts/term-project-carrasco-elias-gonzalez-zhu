@@ -13,6 +13,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "clean": "rm -rf dist/",
+    "db:smoke": "psql \"$DATABASE_URL\" -f database/smoke.sql",
     "prepare": "husky"
   },
   "lint-staged": {
