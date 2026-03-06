@@ -8,6 +8,8 @@ This guide outlines what each team member must do for M5.
 ⚠️ Before proceeding, ensure you have completed all steps in:\
 `docs/milestones/m4/m4-local-setup.md`
 
+**Jonathan** should instead follow **[# M5 Jonathan Backend Checklist](m5-jonathan-backend-checklist.md)**
+
 ------------------------------------------------------------------------
 
 # PART A --- Required Now (Before DB Integration Is Merged)
@@ -24,7 +26,7 @@ npm ci
 
 ## 1) Install PostgreSQL (Required)
 
-Install PostgreSQL locally **(see m5-postgresql-installation.md)**.
+Install PostgreSQL locally by following **[M5 PostgreSQL Installation Guide](m5-postgresql-installation.md)**
 
 ## 2) Create Local Development Database
 
