@@ -8,11 +8,11 @@ This guide outlines what each team member must do for M5.
 ⚠️ Before proceeding, ensure you have completed all steps in:\
 `docs/milestones/m4/m4-local-setup.md`
 
-**Jonathan** should instead follow **[# M5 Jonathan Backend Checklist](m5-jonathan-backend-checklist.md)**
+**Jonathan** should instead follow **[M5 Jonathan Backend Checklist](m5-jonathan-backend-checklist.md)**
 
 ------------------------------------------------------------------------
 
-# PART A --- Required Now (Before DB Integration Is Merged)
+# PART A: Required Now (Before DB Integration Is Merged)
 
 These steps must be completed by all team members immediately.
 
@@ -42,6 +42,8 @@ Verify it exists:
 psql -d term_project_dev
 ```
 
+*Do not create tables manually — `npm run db:smoke` will handle schema setup after integration is merged.*
+
 Exit:
 
 ``` bash
@@ -50,7 +52,7 @@ Exit:
 
 ------------------------------------------------------------------------
 
-# PART B --- After Jonathan Merges Database Integration
+# PART B: After Jonathan Merges Database Integration
 
 Only complete these steps once DB integration has been pushed to `m5`.
 
@@ -93,13 +95,19 @@ npm run dev
 
 Test:
 
--   POST → `/api/games`
--   GET → `/api/games`
+- GET → `/api/games`
+  - Should return 1 seeded row
+- POST → `/api/games` with:
+  ```JSON
+  {
+    "name": "Hearts Match - Round 2",
+    "status": "created"
+  }
+  ```
+- GET → `/api/games`
+  - Should return 2 rows (seed + new)
 
-Confirm:
-
--   A row is inserted into the database
--   JSON is returned correctly
+Confirm JSON is returned correctly.
 
 ------------------------------------------------------------------------
 
@@ -112,4 +120,4 @@ Confirm:
 -   Local database (`term_project_dev`) created
 -   `.env` contains correct `DATABASE_URL`
 -   `npm run db:smoke` executes successfully
--   Demo endpoints return valid JSON
+-   Demo endpoints return expected JSON (1 seeded row after reset)
