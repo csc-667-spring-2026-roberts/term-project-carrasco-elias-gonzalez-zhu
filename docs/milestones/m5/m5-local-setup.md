@@ -7,7 +7,7 @@ This guide outlines what each team member must do for M5.
 
 ⚠️ **Before proceeding**, ensure you have completed all steps in  **[M4 Local Setup & Verification Guide](../m4/m4-local-setup.md)**
 
-After completing m4 local setup, **Jonathan** should instead follow **[M5 Jonathan Backend Checklist](m5-jonathan-backend-checklist.md)**
+❗️After completing m4 local setup, **Jonathan** should instead follow **[M5 Jonathan Backend Checklist](m5-jonathan-backend-checklist.md)**
 
 ------------------------------------------------------------------------
 

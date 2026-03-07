@@ -10,7 +10,7 @@ Slide deck is a continuation from **[M4 Slides](../m4/m4-slides-link.md)**
 
 ## Google Slides
 
-[Open M5 Slides](https://docs.google.com/presentation/d/1lniiPZm7u7g16LcldwOB188yQmaJ5QTM_SF3erlmbAg/edit?slide=id.p#slide=id.p)
+**[Open M5 Slides](https://docs.google.com/presentation/d/1lniiPZm7u7g16LcldwOB188yQmaJ5QTM_SF3erlmbAg/edit?slide=id.p#slide=id.p)**
 
 ------------------------------------------------------------------------
 
