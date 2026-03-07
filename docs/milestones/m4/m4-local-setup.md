@@ -3,13 +3,13 @@
 **CSC 667 Term Project**\
 **Milestone: M4 (Express Setup)**
 
-This guide ensures every team member can clone the M4 branch and verify it runs locally.
+This guide ensures every team member can clone the main branch and verify it runs locally.
 
 ------------------------------------------------------------------------
 
 ## Quick Setup
 
-### 1) Clone, switch to the m4 branch, pull
+### 1) Clone, switch to the main branch, pull
 
 Clone **once** on your machine:
 
@@ -17,10 +17,10 @@ Clone **once** on your machine:
 git clone https://github.com/csc-667-spring-2026-roberts/term-project-carrasco-elias-gonzalez-zhu.git
 ```
 
-Change directory, swtich to m4 branch, and pull latest changes:
+Change directory, swtich to main branch, and pull latest changes:
 ``` bash
 cd term-project-carrasco-elias-gonzalez-zhu
-git checkout m4
+git checkout main
 git pull
 ```
 
