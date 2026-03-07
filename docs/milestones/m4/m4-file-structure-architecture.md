@@ -64,6 +64,8 @@ term-project-carrasco-elias-gonzalez-zhu/
 
     term-project-carrasco-elias-gonzalez-zhu/
 
+------------------------------------------------------------------------
+
 ## Configuration Files
 
     .editorconfig              # (NEW) Enforces consistent formatting across editors
@@ -77,6 +79,7 @@ term-project-carrasco-elias-gonzalez-zhu/
     .prettierrc                # Prettier configuration
     .env.example               # Environment variable template
 
+------------------------------------------------------------------------
 ## Husky
 
     .husky/                    # Git hooks configuration
@@ -86,6 +89,8 @@ term-project-carrasco-elias-gonzalez-zhu/
 Purpose: 
 -   Enforces linting and formatting before commits. 
 -   Maintains code consistency across team.
+
+------------------------------------------------------------------------
 
 ## Source Code (Backend)
 
@@ -105,16 +110,12 @@ Purpose:
         notFound.ts            # (NEW) 404 handler
         errorHandler.ts        # (NEW) Global error handler
 
-------------------------------------------------------------------------
-
 ### index.ts Responsibilities
 
 -   Imports `createApp()` from `app.ts`
 -   Loads environment configuration
 -   Starts the server on the configured PORT
 -   Contains **no routing or middleware logic**
-
-------------------------------------------------------------------------
 
 ### app.ts Responsibilities
 
@@ -127,8 +128,6 @@ Purpose:
 -   Registers 404 and global error-handling middleware
 -   Returns configured Express app instance
 
-------------------------------------------------------------------------
-
 ### routes/
 
 -   `root.routes.ts`
@@ -139,8 +138,6 @@ Purpose:
     - Defines `GET /health`
     - Returns JSON status response
 
-------------------------------------------------------------------------
-
 ### middleware/
 
 -   `notFound.ts`
@@ -148,6 +145,8 @@ Purpose:
 
 -   `errorHandler.ts`
     - Centralized error handler for production safety
+
+------------------------------------------------------------------------
 
 ## Public (Frontend)
 
@@ -158,6 +157,8 @@ Purpose:
 Purpose: 
 -   Demonstrates Express static file serving 
 -   Provides visual confirmation server is running
+
+------------------------------------------------------------------------
 
 ## Documentation
 
