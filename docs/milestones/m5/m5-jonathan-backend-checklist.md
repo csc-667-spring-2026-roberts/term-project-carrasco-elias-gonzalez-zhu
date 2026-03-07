@@ -3,7 +3,9 @@
 **CSC 667 Term Project**\
 **Milestone: M5 (Database Integration)**
 
-This checklist covers the **backend DB integration work** for M5. Zoe already scaffolded the `m5` branch (routes stubbed, `db:smoke`, and docs). Jonathan's job is to implement **pg-promise + minimal read/write endpoints** and keep the branch clean.
+This checklist covers the **backend DB integration work** for M5. 
+Zoe already scaffolded the `m5` branch (routes stubbed, `db:smoke`, and docs). 
+Jonathan's job is to implement **pg-promise + minimal read/write endpoints** and keep the branch clean.
 
 ---
 
@@ -15,6 +17,8 @@ This checklist covers the **backend DB integration work** for M5. Zoe already sc
   git pull
   npm ci
   ```
+- [ ] **Install PostgreSQL (Required)**
+  - Install PostgreSQL locally by following **[M5 PostgreSQL Installation Guide](m5-postgresql-installation.md)**
 - [ ] Confirm `.env.example` exists and includes:
   ```
   DATABASE_URL=postgres://localhost:5432/term_project_dev

@@ -13,8 +13,6 @@ This guide ensures every team member:
 
 ## 🖥 Mac Installation
 
-### Option A (Recommended): Official Installer
-
 1.  Go to: https://www.postgresql.org/download/macosx/
 2.  Download the EDB installer
 3.  Run the installer
@@ -68,3 +66,4 @@ If installed correctly, you should see:
 
 -   PostgreSQL installed and verified
 -   Screenshot taken
+-   Sending screenshot in discord

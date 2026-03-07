@@ -5,7 +5,7 @@
 
 This document explains structural additions made for M5.  
 Only **new or modified components introduced in M5** are described below.  
-All previously documented M4 architecture remains unchanged.
+All previously documented M4 architecture remains unchanged (see **[M4 File Structure & Architecture](../m4/m4-file-structure-architecture.md)**).
 
 ------------------------------------------------------------------------
 
@@ -56,8 +56,6 @@ Architectural Impact:
 - Introduces a dedicated database layer
 - Keeps routing logic separated from connection logic
 - Maintains modular backend structure established in M4
-
-------------------------------------------------------------------------
 
 ### smoke.sql
 

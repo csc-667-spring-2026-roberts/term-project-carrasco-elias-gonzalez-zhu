@@ -30,7 +30,7 @@ Show that the backend can:
 
 ## 1) Open the project folder
 
-1. Open **Terminal** (Mac) or **PowerShell / Command Prompt** (Windows)
+1. Open **Terminal** (Mac) or **PowerShell / Command Prompt** (Windows). You can also open terminal or powershell in **VS Code**.
 2. Navigate to your project directory:
 
 ```bash
@@ -115,8 +115,6 @@ npm run db:smoke
 > “Before starting, we reset the database using our smoke script.  
 > This drops and recreates the `games` table and inserts one seeded row, so the demo always starts from a clean baseline.”
 
----
-
 ## Step 1 — Start Server (5–10s)
 
 ### Do (Terminal)
@@ -128,8 +126,6 @@ Leave this terminal running.
 
 ### Say
 > “Now we start the Express server on port 3000, connected to PostgreSQL through pg-promise.”
-
----
 
 ## Step 2 — GET baseline row (10–15s)
 
@@ -146,8 +142,6 @@ Open:
 
 (Brief pause so they can see the JSON.)
 
----
-
 ## Step 3 — POST a new game (10–15s)
 
 ### Do (NEW Terminal window/tab)
@@ -162,8 +156,6 @@ curl -X POST http://localhost:3000/api/games \
 > “Next we insert a new game using POST, sending a JSON body with a name and status.  
 > The server responds successfully, confirming the write operation.”
 
----
-
 ## Step 4 — GET again to confirm persistence (10–15s)
 
 ### Do (Browser)
@@ -173,8 +165,6 @@ Refresh:
 ### Say
 > “After inserting, we call GET again and now we see two rows — the seeded baseline row and the new row we just created.  
 > This confirms the data persisted in PostgreSQL.”
-
----
 
 ## Closing (5–10s)
 

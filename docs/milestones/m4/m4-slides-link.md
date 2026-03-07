@@ -9,9 +9,6 @@ This document include Google Slides link and Presenter Notes.
 
 ## Google Slides
 
-Replace the placeholder URL below with the actual Google Slides link
-before committing.
-
 [Open M4 Slides](https://docs.google.com/presentation/d/1M7BPiXHAtdwZlX1O-edYAlnnxkxKUldzctKgf7oooms/edit?slide=id.g3cc7eb3d8b4_0_57#slide=id.g3cc7eb3d8b4_0_57)
 
 ------------------------------------------------------------------------

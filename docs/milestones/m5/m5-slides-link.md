@@ -4,6 +4,7 @@
 **Milestone: M4 (Express Setup)**
 
 This document include Google Slides link and Presenter Notes.
+Slide deck is a continuation from **[M4 Slides](../m4/m4-slides-link.md)**
 
 ------------------------------------------------------------------------
 
@@ -20,8 +21,6 @@ This document include Google Slides link and Presenter Notes.
 - **Marbella:** Voice only, primary presenter (only one speaking)
 - **[Insert Presenter here]:** Shares screen, navigates slides, runs local demo
 
----
-
 ## 🟢 Slide 1 — Team + Milestone
 
 **Title Slide (Keep Minimal)**  
@@ -33,8 +32,6 @@ This document include Google Slides link and Presenter Notes.
 **[Insert Presenter here]:** 
 - Advances to next slide
 
----
-
 ## 🟢 Slide 2 — M5 Requirements
 
 **Bullet Points (Clean + Short)**
@@ -44,8 +41,6 @@ This document include Google Slides link and Presenter Notes.
 
 **[Insert Presenter here]:**
 - Advances to next slide  
-
----
 
 ## 🟢 Slide 3 — How We Implemented It
 
@@ -62,8 +57,6 @@ This document include Google Slides link and Presenter Notes.
 **[Insert Presenter here]:**
 - Advances to next slide  
 
----
-
 ## 🟢 Slide 4 — Challenges / Lessons Learned
 
 **Bullet Points**
@@ -74,8 +67,6 @@ This document include Google Slides link and Presenter Notes.
 **[Insert Presenter here]:**
 - Advances to next slide  
 
----
-
 ## 🟢 Slide 5 — ER Diagram (Full Screen)
 
 **Large, clean ER Diagram image**  
@@ -85,9 +76,7 @@ This document include Google Slides link and Presenter Notes.
 - Connects ER diagram to implemented `games` table  
 
 **[Insert Presenter here]:**
-- Exits slideshow  
-
----
+- Exits slideshow
 
 # 🎬 Transition to Live Demo
 
