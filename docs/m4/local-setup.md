@@ -3,6 +3,9 @@
 **CSC 667 Term Project**\
 **Milestone: M4 (Express Setup)**
 
+> ⚠️ **Status:** This document is part of the M4 implementation.  
+It is retained here for reference and documentation purposes.
+
 This guide ensures every team member can clone the main branch and verify it runs locally.
 
 ------------------------------------------------------------------------

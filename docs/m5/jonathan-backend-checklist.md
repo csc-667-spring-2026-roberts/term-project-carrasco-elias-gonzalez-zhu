@@ -3,6 +3,9 @@
 **CSC 667 Term Project**\
 **Milestone: M5 (Database Integration)**
 
+> ⚠️ **Status:** This document is part of the M5 implementation.  
+It is retained here for reference and documentation purposes.
+
 This checklist covers the **backend DB integration work** for M5. 
 Zoe already scaffolded the `m5` branch (routes stubbed, `db:smoke`, and docs). 
 Jonathan's job is to implement **pg-promise + minimal read/write endpoints** and keep the branch clean.

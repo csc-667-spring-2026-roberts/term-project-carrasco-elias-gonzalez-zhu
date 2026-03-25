@@ -3,6 +3,9 @@
 **CSC 667 Term Project**\
 **Milestone: M4 (Express Setup)**
 
+> ⚠️ **Status:** This document is part of the M5 implementation.  
+It is retained here for reference and documentation purposes.
+
 This document include Google Slides link and Presenter Notes.
 Slide deck is a continuation from **[M4 Slides](../m4/m4-slides-link.md)**
 
@@ -87,4 +90,4 @@ Slide deck is a continuation from **[M4 Slides](../m4/m4-slides-link.md)**
 **[Insert Presenter here]:**
 - Executes demo
 
-**Follow [M5 (Demo Checklist)](m5-demo-checklist.md) for full script and steps for demo.**
+**Follow [M5 (Demo Checklist)](demo-checklist.md) for full script and steps for demo.**

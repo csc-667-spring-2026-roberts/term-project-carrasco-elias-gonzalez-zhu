@@ -3,6 +3,10 @@
 **CSC 667 Term Project**  
 **Milestone: M5 (Database Integration)**
 
+> ⚠️ **Status:** This document is part of the M5 implementation.  
+It is retained here for reference and documentation purposes.
+
+
 This guide is designed so the demo can be executed **step-by-step with zero guessing**.
 
 ---
