@@ -13,6 +13,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "clean": "rm -rf dist/",
+    "db:smoke": "dotenv -e .env -- sh -c 'psql \"$DATABASE_URL\" -f database/smoke.sql'",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -29,6 +30,7 @@
     "@eslint/js": "^9.0.0",
     "@types/express": "^5.0.6",
     "@types/node": "^20.11.0",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9.0.0",
     "husky": "^9.0.0",
     "lint-staged": "^15.2.0",
@@ -39,6 +41,8 @@
   },
   "dependencies": {
     "dotenv": "^17.3.1",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "pg": "^8.20.0",
+    "pg-promise": "^12.6.2"
   }
 }

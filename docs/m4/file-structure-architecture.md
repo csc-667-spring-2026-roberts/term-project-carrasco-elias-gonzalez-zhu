@@ -3,6 +3,9 @@
 **CSC 667 Term Project**\
 **Milestone: M4 (Express Setup)**
 
+> ⚠️ **Status:** This document is part of the M4 implementation. It has been updated to reflect the finalized M5 setup.
+
+
 This document explains the current project structure and highlights
 newly added files for M4.
 
@@ -32,12 +35,11 @@ term-project-carrasco-elias-gonzalez-zhu/
 │   ├── index.html                                  # Static homepage (NEW)
 │   └── styles.css                                  # Basic styling (NEW)
 │
-├── docs/
-│   └── milestones/
-│       └── m4/
-│           ├── m4-local-setup.md                   # Local setup instructions (NEW)
-│           ├── m4-slides-link.md                   # Presentation link (NEW)
-│           └── m4-file-structure-architecture.md   # Architecture documentation (NEW)
+docs/
+└── m4/
+    ├── file-structure-architecture.md  # Architecture documentation (NEW)
+    ├── local-setup.md                   # Local setup instructions (NEW)
+    └── slides-link.md                   # Presentation link (NEW)
 │
 ├── database/                                       
 ├── views/                                          
@@ -163,12 +165,11 @@ Purpose:
 ## Documentation
 
     docs/
-      milestones/
-        m4/
-          m4-local-setup.md               # (NEW) Setup & verification instructions
-          slides-link.md                  # (NEW) Link to presentation slides
-          file-structure-architecture.md  # (NEW) This document
-    README.md                             # Project overview
+      m4/
+        local-setup.md                  # (NEW) Setup & verification instructions
+        slides-link.md                  # (NEW) Link to presentation slides
+        file-structure-architecture.md  # (NEW) This document
+    README.md                           # Project overview
     
 ------------------------------------------------------------------------
 

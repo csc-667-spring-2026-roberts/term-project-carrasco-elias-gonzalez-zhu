@@ -4,6 +4,7 @@ import type { Express } from "express";
 import { paths } from "./config/paths.js";
 import { rootRouter } from "./routes/root.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
+import { gamesRouter } from "./routes/games.routes.js";
 import { notFound } from "./middleware/notFound.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -20,6 +21,7 @@ export function createApp(): Express {
   // Routes
   app.use(rootRouter);
   app.use(healthRouter);
+  app.use("/api/games", gamesRouter);
 
   // 404 + error handler (must be last)
   app.use(notFound);

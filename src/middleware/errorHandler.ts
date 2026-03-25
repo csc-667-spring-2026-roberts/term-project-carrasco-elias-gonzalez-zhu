@@ -1,4 +1,5 @@
-import type { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
+import { env } from "../config/env.js";
 
 export function errorHandler(
   err: unknown,
@@ -9,7 +10,7 @@ export function errorHandler(
   console.error("Unhandled error:", err);
 
   const message =
-    process.env.NODE_ENV === "development"
+    env.nodeEnv === "development"
       ? err instanceof Error
         ? err.message
         : String(err)
