@@ -4,10 +4,9 @@ import db from "./connection.js";
 import type { DbUser, User } from "../types/types.js";
 
 export async function existing(email: string): Promise<boolean> {
-  const found = await db.oneOrNone<{ id: number }>(
-    "SELECT id FROM users WHERE email = $1",
-    [email],
-  );
+  const found = await db.oneOrNone<{ id: number }>("SELECT id FROM users WHERE email = $1", [
+    email,
+  ]);
 
   return found !== null;
 }

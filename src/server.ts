@@ -57,5 +57,5 @@ app.use("/lobby", lobbyRoutes);
 app.use("/test", testRoutes);
 
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${String(PORT)}`);
+  console.log(`Server running on http://localhost:${String(PORT)}`);
 });
