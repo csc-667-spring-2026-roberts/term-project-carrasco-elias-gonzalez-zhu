@@ -4,8 +4,7 @@
 **Milestone: M5 (Database Integration)**
 
 > ⚠️ **Status:** This document is part of the M5 implementation.  
-It is retained here for reference and documentation purposes.
-
+> It is retained here for reference and documentation purposes.
 
 This guide is designed so the demo can be executed **step-by-step with zero guessing**.
 
@@ -21,10 +20,12 @@ Show that the backend can:
 - Read again to confirm persistence (`GET /api/games`)
 
 **Expected visible results:**
+
 - After reset: **1 row**
 - After POST: **2 rows**
 
 **Demo URL (from `.env.example`):**
+
 - Base URL: `http://localhost:3000`
 - Endpoint: `http://localhost:3000/api/games`
 
@@ -111,17 +112,20 @@ This section includes **exact actions** and **exact narration**.
 ## Step 0 — Reset DB Baseline (5–10s)
 
 ### Do (Terminal, project root)
+
 ```bash
 npm run db:smoke
 ```
 
 ### Say
+
 > “Before starting, we reset the database using our smoke script.  
 > This drops and recreates the `games` table and inserts one seeded row, so the demo always starts from a clean baseline.”
 
 ## Step 1 — Start Server (5–10s)
 
 ### Do (Terminal)
+
 ```bash
 npm run dev
 ```
@@ -129,18 +133,23 @@ npm run dev
 Leave this terminal running.
 
 ### Say
+
 > “Now we start the Express server on port 3000, connected to PostgreSQL through pg-promise.”
 
 ## Step 2 — GET baseline row (10–15s)
 
 ### Do (Browser)
+
 Open:
+
 - `http://localhost:3000/api/games`
 
 ### Say (as you load the page)
+
 > “Here we call our GET endpoint at `/api/games`.”
 
 ### Say (once JSON appears)
+
 > “We see exactly one row — the seeded game created by the smoke reset.  
 > This confirms our backend can successfully read from PostgreSQL.”
 
@@ -149,7 +158,9 @@ Open:
 ## Step 3 — POST a new game (10–15s)
 
 ### Do (NEW Terminal window/tab)
+
 Run:
+
 ```bash
 curl -X POST http://localhost:3000/api/games \
   -H "Content-Type: application/json" \
@@ -157,22 +168,27 @@ curl -X POST http://localhost:3000/api/games \
 ```
 
 ### Say
+
 > “Next we insert a new game using POST, sending a JSON body with a name and status.  
 > The server responds successfully, confirming the write operation.”
 
 ## Step 4 — GET again to confirm persistence (10–15s)
 
 ### Do (Browser)
+
 Refresh:
+
 - `http://localhost:3000/api/games`
 
 ### Say
+
 > “After inserting, we call GET again and now we see two rows — the seeded baseline row and the new row we just created.  
 > This confirms the data persisted in PostgreSQL.”
 
 ## Closing (5–10s)
 
 ### Say
+
 > “So for Milestone 5, we demonstrated a working PostgreSQL integration with a reliable reset script and functioning GET and POST endpoints for database read and write.”
 
 ---
@@ -180,6 +196,7 @@ Refresh:
 # ✅ C) Troubleshooting / Recovery (Fast)
 
 ## If you see too many rows or confusing data
+
 Reset baseline instantly:
 
 ```bash
@@ -189,9 +206,11 @@ npm run db:smoke
 Then repeat the demo from **Step 2**.
 
 ## If POST returns 400 Bad Request
+
 - Make sure your JSON includes **both** `name` and `status`.
 
 ## If the server won’t start or shows DB errors
+
 - Confirm `.env` has the correct `DATABASE_URL`
 - Confirm PostgreSQL is running
 - Confirm the database exists:

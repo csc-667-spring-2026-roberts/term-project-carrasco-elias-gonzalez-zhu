@@ -10,8 +10,8 @@
     "dev": "tsx watch src/server.ts",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "format": "prettier --write \"src/**/*.ts\" \"views/**/*.ejs\" \"docs/**/*.md\"",
-    "format:check": "prettier --check \"src/**/*.ts\" \"views/**/*.ejs\" \"docs/**/*.md\"",
+    "format": "prettier --write \"src/**/*.{ts,js}\" \"views/**/*.ejs\" \"docs/**/*.md\" \"*.{json,yaml,yml}\" \".github/**/*.yml\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js}\" \"views/**/*.ejs\" \"docs/**/*.md\" \"*.{json,yaml,yml}\" \".github/**/*.yml\"",
     "clean": "rm -rf dist/",
     "migrate:create": "node-pg-migrate create -j ts",
     "migrate:up": "node-pg-migrate up -j ts",
@@ -21,6 +21,10 @@
     "check:views": "tsx src/scripts/views/check-views.ts",
     "check:app": "tsx src/scripts/smoke/check-app.ts",
     "check": "npm run build && npm run check:db && npm run check:auth && npm run check:views && npm run check:app",
+    "db:test:create": "tsx src/scripts/db/create-test-database.ts",
+    "db:test:reset": "tsx src/scripts/db/reset-test-database.ts",
+    "db:test:seed": "tsx src/scripts/db/seed-test-data.ts",
+    "db:test:setup": "npm run db:test:create && npm run db:test:reset && npm run db:test:seed",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -36,6 +40,7 @@
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@types/bcrypt": "^6.0.0",
+    "@types/connect-pg-simple": "^7.0.3",
     "@types/ejs": "^3.1.5",
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.18.2",

@@ -4,11 +4,11 @@
 **Milestone: M4 (Express Setup)**
 
 > ⚠️ **Status:** This document is part of the M4 implementation.  
-It is retained here for reference and documentation purposes.
+> It is retained here for reference and documentation purposes.
 
 This guide ensures every team member can clone the main branch and verify it runs locally.
 
-------------------------------------------------------------------------
+---
 
 ## Quick Setup
 
@@ -16,12 +16,13 @@ This guide ensures every team member can clone the main branch and verify it run
 
 Clone **once** on your machine:
 
-``` bash
+```bash
 git clone https://github.com/csc-667-spring-2026-roberts/term-project-carrasco-elias-gonzalez-zhu.git
 ```
 
 Change directory, swtich to main branch, and pull latest changes:
-``` bash
+
+```bash
 cd term-project-carrasco-elias-gonzalez-zhu
 git checkout main
 git pull
@@ -34,6 +35,7 @@ Check your current Node version:
 ```bash
 node -v
 ```
+
 If using nvm:
 
 - If the version does **not** start with `v20`, do the following:
@@ -56,17 +58,18 @@ node -v   # should be v20.x.x
 npm -v
 ```
 
-
 ### 3) Configure Git line endings (important)
 
 Run **once** on your machine:
 
 **macOS / Linux:**
+
 ```bash
 git config --global core.autocrlf input
 ```
 
 **Windows:**
+
 ```bash
 git config --global core.autocrlf true
 ```
@@ -77,7 +80,7 @@ This ensures line endings are consistent and prevents large, noisy diffs.
 
 Run this once **OR** after a dependency changes:
 
-``` bash
+```bash
 npm ci
 ```
 
@@ -92,6 +95,7 @@ If you **accidentally** run `npm install`, **reset with**:
 rm -rf node_modules
 npm ci
 ```
+
 ### 5) Copy environment file
 
 Run this once **OR** after new environment variables are introduced:
@@ -104,13 +108,14 @@ cp .env.example .env
 
 Run to test server:
 
-``` bash
+```bash
 npm run dev
 ```
 
 Open on browser: **http://localhost:3000**
 
 After testing, use a **keyboard shortcut** to **stop the server**:
+
 ```code
 Ctrl + C
 ```
@@ -119,7 +124,7 @@ Ctrl + C
 
 Run build check.
 
-``` bash
+```bash
 npm run build
 ```
 
@@ -134,12 +139,12 @@ npm run lint
 npm run format
 ```
 
-------------------------------------------------------------------------
+---
 
 ## Sanity Checklist (Must Pass)
 
--   Node version is `20.x`
--   `npm ci` completes successfully
--   `npm run dev` starts the server
--   The app loads in the browser
--   `npm run build` completes without errors
+- Node version is `20.x`
+- `npm ci` completes successfully
+- `npm run dev` starts the server
+- The app loads in the browser
+- `npm run build` completes without errors

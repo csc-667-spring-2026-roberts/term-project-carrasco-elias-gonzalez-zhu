@@ -4,10 +4,10 @@
 **Milestone: M5 (Database Integration)**
 
 > ⚠️ **Status:** This document is part of the M5 implementation.  
-It is retained here for reference and documentation purposes.
+> It is retained here for reference and documentation purposes.
 
-This checklist covers the **backend DB integration work** for M5. 
-Zoe already scaffolded the `m5` branch (routes stubbed, `db:smoke`, and docs). 
+This checklist covers the **backend DB integration work** for M5.
+Zoe already scaffolded the `m5` branch (routes stubbed, `db:smoke`, and docs).
 Jonathan's job is to implement **pg-promise + minimal read/write endpoints** and keep the branch clean.
 
 ---
@@ -31,26 +31,31 @@ Jonathan's job is to implement **pg-promise + minimal read/write endpoints** and
 ## ✅ 1) Install & Configure pg-promise
 
 ### Dependencies
+
 - [ ] Add required packages:
   ```bash
   npm i pg-promise pg
   ```
 
 ### Environment
+
 - [ ] Confirm `.env` is gitignored and **NOT committed**
 - [ ] Ensure app reads `DATABASE_URL` from environment (via existing dotenv setup)
 
 ## ✅ 2) Implement Database Connection
 
 Implement:
+
 - [ ] `database/connection.ts`
 
 Minimum expectations:
+
 - [ ] Uses `pg-promise` with `DATABASE_URL`
 - [ ] Exports a reusable `db` instance (no reconnect-per-request)
 - [ ] Has a small, readable structure (no extra abstraction needed for M5)
 
 Suggested shape:
+
 - `export default db;` OR `export { db };` (pick one and use consistently)
 
 ## ✅ 3) Verify Demo Schema Reset (Smoke Script)
@@ -64,7 +69,7 @@ Goal: `npm run db:smoke` resets the demo table to a known baseline.
 
 Note:
 `database/smoke.sql` defines the demo schema and seed row.
-*Coordinate before modifying it.*
+_Coordinate before modifying it._
 
 ## ✅ 4) Implement GET + POST Endpoints (Read + Write)
 
@@ -72,11 +77,14 @@ Target: `src/routes/games.routes.ts`
 Table schema (from smoke.sql): `games(id, name, status, created_at)`
 
 ### Route Contract (Minimal)
+
 - [ ] `GET /api/games` returns a JSON array of rows from `games`
 - [ ] `POST /api/games` inserts a row and returns the inserted row (201 Created)
 
 ### POST Body (Keep Minimal)
+
 Choose a small payload (example):
+
 ```json
 {
   "name": "Hearts Match - Round 2",
@@ -85,10 +93,12 @@ Choose a small payload (example):
 ```
 
 ### Parameterized Queries (Required)
+
 - [ ] Validate name and status exist → return 400 if missing
 - [ ] Use parameterized queries (no string concatenation)
 
 ### Error Handling
+
 - [ ] Wrap DB calls with try/catch
 - [ ] Return `500` with a safe message on unexpected errors
 - [ ] Log the real error server-side (console is fine for M5)
@@ -102,11 +112,14 @@ Choose a small payload (example):
 ## ✅ 6) Local Verification Steps (You Must Run)
 
 ### Build/Lint Gate (Required)
+
 Before pushing:
+
 - [ ] `npm run build`
 - [ ] `npm run lint`
 
 ### Smoke + Dev Run
+
 - [ ] Reset demo table:
   ```bash
   npm run db:smoke
@@ -117,13 +130,13 @@ Before pushing:
   ```
 
 ### Manual API Test (Required)
+
 - [ ] Run `npm run db:smoke`
 - [ ] GET `/api/games` → should return 1 seeded row
 - [ ] POST `/api/games` with `{ name, status }`
 - [ ] GET `/api/games` → should return 2 rows (seed + new)
 
-*(Use Postman, curl, or VSCode REST client—anything is fine.)*
-
+_(Use Postman, curl, or VSCode REST client—anything is fine.)_
 
 ## ✅ 7) Demo Readiness (Presentation-Safe)
 
@@ -135,6 +148,7 @@ Before pushing:
 ## ✅ 8) Commit & Push Checklist
 
 Before committing:
+
 - [ ] No `.env` committed
 - [ ] No secrets committed
 - [ ] `npm run build` and `npm run lint` pass
@@ -146,9 +160,11 @@ Before committing:
   - **package-lock.json**
 
 Commit message suggestion:
+
 - `feat(m5): add pg-promise connection and games read/write routes`
 
 Then:
+
 ```bash
 git status
 git add -A

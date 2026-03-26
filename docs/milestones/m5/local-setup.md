@@ -4,17 +4,17 @@
 **Milestone: M5 (Database Integration)**
 
 > ⚠️ **Status:** This guide reflects the finalized M5 setup.  
-All steps must be completed successfully before proceeding to M6.
-This guide outlines what each team member must do for M5.
+> All steps must be completed successfully before proceeding to M6.
+> This guide outlines what each team member must do for M5.
 
 👉 **Before proceeding**, ensure you have completed all steps in  
 **[M4 Local Setup & Verification Guide](../m4/local-setup.md)**
 
-------------------------------------------------------------------------
+---
 
 ## 0) Switch to the M5 Branch
 
-``` bash
+```bash
 git checkout m5
 git pull
 npm ci
@@ -37,8 +37,9 @@ Create and verify your local database by following:
 👉 **[M5 PostgreSQL Installation Guide](postgresql-installation.md) → Step 5 (Create Database)**
 
 Expected:
+
 - `term_project_dev` exists
-- ⚠️ Do NOT create tables manually  
+- ⚠️ Do NOT create tables manually
   - `npm run db:smoke` will handle schema setup after integration is merged.
 
 ---
@@ -50,6 +51,7 @@ Create and configure your `.env` file by following:
 👉 **[M5 PostgreSQL Installation Guide](postgresql-installation.md) → Step 6 (Configure DATABASE_URL)**
 
 Expected:
+
 - `.env` exists in the project root
 - `DATABASE_URL` is configured correctly for your OS
 - the database name is `term_project_dev`
@@ -64,6 +66,7 @@ Run the database schema setup by following:
 👉 **[M5 PostgreSQL Installation Guide](postgresql-installation.md) → Step 7 (Run Smoke Test)**
 
 Expected:
+
 - No errors
 - Tables are created
 
@@ -86,6 +89,7 @@ npm run db:smoke
 ```
 
 Expected:
+
 - The `games` table is dropped and recreated
 - One seeded row is inserted
 
@@ -100,6 +104,7 @@ npm run dev
 ```
 
 Expected:
+
 - The server starts successfully
 - It runs on `http://localhost:3000`
 
@@ -112,6 +117,7 @@ Open this URL in your browser:
 **http://localhost:3000/api/games**
 
 Expected:
+
 - JSON is returned
 - Exactly **1 row** appears
 
@@ -128,6 +134,7 @@ curl -X POST http://localhost:3000/api/games \
 ```
 
 Expected:
+
 - The server responds successfully
 - JSON for the inserted row is returned
 
@@ -140,6 +147,7 @@ Refresh:
 **http://localhost:3000/api/games**
 
 Expected:
+
 - JSON is returned
 - Exactly **2 rows** appear:
   - the seeded baseline row
@@ -149,14 +157,14 @@ This confirms the inserted data persisted in PostgreSQL.
 
 ### Local Verification Complete When:
 
-- `npm run db:smoke` runs successfully  
-  - The database is reset with a clean baseline  
+- `npm run db:smoke` runs successfully
+  - The database is reset with a clean baseline
 
 ---
 
-- `npm run dev` starts the server  
-  - Server runs at: [insert here]  
-  - No errors appear in the terminal  
+- `npm run dev` starts the server
+  - Server runs at: [insert here]
+  - No errors appear in the terminal
 
 ---
 
@@ -167,6 +175,7 @@ This confirms the inserted data persisted in PostgreSQL.
   - `"status": "waiting"`
 
   Example (simplified):
+
   ```json
   {
     "id": 1,
@@ -178,6 +187,7 @@ This confirms the inserted data persisted in PostgreSQL.
 - POST `/api/games` succeeds
 
   Request body:
+
   ```json
   {
     "name": "Hearts Match - Round 2",
@@ -186,8 +196,8 @@ This confirms the inserted data persisted in PostgreSQL.
   ```
 
   Expected:
-  - Server returns the newly created row  
-  - No errors in terminal  
+  - Server returns the newly created row
+  - No errors in terminal
 
 ---
 
@@ -202,6 +212,7 @@ This confirms the inserted data persisted in PostgreSQL.
     - `"status": "created"`
 
   Example (simplified):
+
   ```json
   {
     "id": 1,
@@ -216,24 +227,27 @@ This confirms the inserted data persisted in PostgreSQL.
   ```
 
 - JSON is returned correctly
-  - Data is in JSON format (array of objects)  
+  - Data is in JSON format (array of objects)
   - No server or database errors occur
 
 ### If Something Looks Wrong
 
 If you see too many rows or unexpected data:
 
-  ```bash
-  npm run db:smoke
-  ```
+```bash
+npm run db:smoke
+```
+
 - Then repeat Steps 3–5.
 
 If POST returns `400 Bad Request`:
+
 - Make sure the JSON body includes both:
   - `name`
   - `status`
 
 If the server shows database errors:
+
 - Confirm PostgreSQL is running
 - Confirm `term_project_dev` exists
 - Confirm `.env` has the correct `DATABASE_URL`
@@ -242,13 +256,13 @@ If the server shows database errors:
 
 # M5 Sanity Checklist
 
-- On `m5` branch  
-- `npm ci` completed successfully  
-- PostgreSQL installed and running (`psql --version`)  
-- Local database (`term_project_dev`) created  
-- `.env` configured with correct `DATABASE_URL`  
-- `npm run db:smoke` runs without errors (1 seeded row)  
+- On `m5` branch
+- `npm ci` completed successfully
+- PostgreSQL installed and running (`psql --version`)
+- Local database (`term_project_dev`) created
+- `.env` configured with correct `DATABASE_URL`
+- `npm run db:smoke` runs without errors (1 seeded row)
 - Demo endpoints verified:
-  - GET `/api/games` → 1 row  
-  - POST `/api/games` → succeeds  
+  - GET `/api/games` → 1 row
+  - POST `/api/games` → succeeds
   - GET `/api/games` → 2 rows
