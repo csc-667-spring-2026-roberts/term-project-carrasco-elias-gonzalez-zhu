@@ -5,7 +5,7 @@
     "moduleResolution": "NodeNext",
     "types": ["node"],
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "./src",
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -25,6 +25,6 @@
     "forceConsistentCasingInFileNames": true,
     "sourceMap": true
   },
-  "include": ["src/**/*", "database/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
