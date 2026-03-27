@@ -1,5 +1,3 @@
-// STUB NEEDED
-// TODO [Person 1]:
 export interface User {
   id: number;
   email: string;

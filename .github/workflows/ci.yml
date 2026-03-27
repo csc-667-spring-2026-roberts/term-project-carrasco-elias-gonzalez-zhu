@@ -2,10 +2,11 @@ name: CI
 
 on:
   pull_request:
-  push:
+    branches:
+      - m6-m7
 
 jobs:
-  build:
+  base-checks:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,4 +17,41 @@ jobs:
           node-version: 20
 
       - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
       - run: npm run build
+
+  data-checks:
+    if: github.head_ref == 'm6-m7-data'
+    needs: base-checks
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: term_project_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/term_project_test
+      SESSION_SECRET: dev-secret
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+      - run: npm run migrate:up
+      - run: npm run check:db
