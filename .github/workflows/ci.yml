@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - m6-m7
-  push:
-    branches:
-      - m6-m7
 
 jobs:
   base-checks:
@@ -25,7 +22,7 @@ jobs:
       - run: npm run build
 
   data-checks:
-    if: github.event_name == 'pull_request' && github.head_ref == 'm6-m7-data'
+    if: github.head_ref == 'm6-m7-data'
     needs: base-checks
     runs-on: ubuntu-latest
 
