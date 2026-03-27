@@ -2,4 +2,3 @@
 
 Reference code patterns.  
 Do not import or execute these files.
-REMOVE ME
