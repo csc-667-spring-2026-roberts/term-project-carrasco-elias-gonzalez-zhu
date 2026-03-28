@@ -1,0 +1,24 @@
+<!-- TODO [Person 3]:
+You may add classes, styling hooks, helper text, and safe wrapper elements.
+
+Do NOT change:
+- include paths
+- expected render variables: title, user, error
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include("partials/head", { title, user }) %>
+  </head>
+
+  <body>
+    <%- include("partials/nav", { user, error }) %>
+
+    <main>
+      <h2>Lobby</h2>
+
+      <p>Welcome to the lobby.</p>
+    </main>
+  </body>
+</html>
