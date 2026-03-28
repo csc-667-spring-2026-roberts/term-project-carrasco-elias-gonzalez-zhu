@@ -55,3 +55,42 @@ jobs:
       - run: npm ci
       - run: npm run migrate:up
       - run: npm run check:db
+
+  auth-checks:
+    if: github.head_ref == 'm6-m7-auth'
+    needs: base-checks
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: term_project_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/term_project_test
+      SESSION_SECRET: dev-secret
+      APP_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+      - run: npm run db:schema
+      - run: npm run build
+      - run: npm run start &
+      - run: sleep 5
+      - run: npm run check:auth

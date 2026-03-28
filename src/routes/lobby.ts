@@ -1,10 +1,14 @@
-// STUB - IMPLEMENTATION NEEDED
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 
-const router = Router();
+import { requireAuth } from "../middleware/auth.js";
 
-router.get("/", (_req, res) => {
-  res.send("lobby");
+const lobbyRouter = Router();
+
+lobbyRouter.get("/", requireAuth, (request: Request, response: Response) => {
+  response.render("lobby", {
+    title: "Lobby",
+    user: request.session.user,
+  });
 });
 
-export default router;
+export default lobbyRouter;

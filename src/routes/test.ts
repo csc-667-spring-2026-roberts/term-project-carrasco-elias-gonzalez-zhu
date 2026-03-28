@@ -1,10 +1,17 @@
-// STUB - IMPLEMENTATION NEEDED
-import { Router } from "express";
+/**
+ * Debug/testing routes.
+ * Used for development and verification only.
+ * Not part of core application functionality.
+ */
 
-const router = Router();
+import { Router, type Request, type Response } from "express";
 
-router.get("/", (_req, res) => {
-  res.send("test");
+export const testRouter = Router();
+
+testRouter.get("/", (request: Request, response: Response) => {
+  response.status(200).json({
+    message: "Test route working",
+    isAuthenticated: Boolean(request.session.user),
+    user: request.session.user ?? null,
+  });
 });
-
-export default router;
