@@ -85,6 +85,27 @@ npm run db:recreate
 
 ---
 
+## 💡 (Optional) Enable Auto Save in VS Code
+
+To improve your workflow, consider enabling Auto Save.
+You can enable Auto Save in two ways:
+
+**Option 1 (Quick Toggle):**
+
+- Go to `File → Auto Save` and enable it
+
+**Option 2 (Recommended Settings):**
+
+- Open Settings (`Cmd + ,` on Mac or `Ctrl + ,` on Windows)
+- Search for **Auto Save**
+- Set:
+  - `Auto Save` → `afterDelay`
+  - `Auto Save Delay` → `1000`
+
+This helps prevent issues with unsaved files when running scripts or checks.
+
+---
+
 ## 🚀 Next Steps
 
 Once setup is complete, continue with:
