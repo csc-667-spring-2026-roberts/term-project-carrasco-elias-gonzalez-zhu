@@ -18,12 +18,11 @@ Each person owns a set of files and must implement within those boundaries.
 ```text
 migrations/<timestamp>_create-users-table.ts
 migrations/<timestamp>_create-sessions-table.ts
-
-src/db/users.ts
 ```
 
-👉 **Only modify these files** listed above.  
-👉 **Do NOT modify locked contracts or files owned by other team members** without team agreement.
+👉 **You are responsible for creating these migration files in the `migrations/` directory.**  
+👉 **Do NOT modify existing files outside of this directory.**  
+👉 **Do NOT modify locked contracts or files owned by other team members without team agreement.**
 
 ### Main Goal
 
@@ -33,7 +32,28 @@ This includes:
 
 - creating migration files for `users` and `session`
 - ensuring migrations match `schema-setup.sql`
-- implementing user-related DB helper functions
+
+## Shared Contracts (Person 1)
+
+The following files are used by the database layer and must remain stable:
+
+- `src/db/users.ts` — baseline database helper functions used by the auth layer
+- `src/db/connection.ts` — shared database connection
+- `src/types/types.ts` — shared TypeScript interfaces
+
+👉 Do NOT modify these files without team agreement.  
+👉 Your responsibility is to ensure your migrations match the schema expected by these files.
+
+### Migration Reference Contracts (Person 1)
+
+The following example files define the expected structure and style of migration files:
+
+- `docs/examples/create-users-table.example.ts`
+- `docs/examples/create-sessions-table.example.ts`
+
+👉 Use these as reference templates when writing migrations.  
+👉 Do NOT modify these files.  
+👉 Your migration files should follow the same structure and conventions.
 
 ### Scripts (Person 1)
 
@@ -49,6 +69,7 @@ This includes:
 - `npm run build` — Compile TypeScript
 - `npm run lint` — Check for lint errors
 - `npm run format:check` — Verify code formatting (Prettier)
+- `npm run format` — Automatically format code using Prettier
 
 ### Creating Migration Files
 
@@ -91,30 +112,6 @@ These files provide:
 👉 Use the **example files in `docs/examples/*` as the locked contract** when implementing your migration files.
 👉 **Do NOT modify the contract** without team agreement.
 
-### `src/db/users.ts`
-
-This file contains user-related database access functions.
-
-Expected functions:
-
-```text
-existing(email)
-create(email, passwordHash, displayName)
-findByEmail(email)
-```
-
-Expected behavior:
-
-- `existing(email)` returns whether a user exists
-- `create(...)` inserts a user and returns a safe user object
-- `findByEmail(email)` returns the full DB user (including `password_hash`)
-
-This file depends on the shared interfaces defined in `src/types/types.ts`.
-
-**👉 Follow the locked contract defined in this file’s implementation comments.**  
-**👉 Use `src/types/types.ts` as a shared contract reference.**  
-**👉 Do NOT modify either contract** without team agreement.
-
 ### What to Run During Development
 
 Use these commands while working:
@@ -130,6 +127,7 @@ Use these when needed:
 ```bash
 npm run lint
 npm run format:check
+npm run format
 ```
 
 If your database gets into a bad state:
