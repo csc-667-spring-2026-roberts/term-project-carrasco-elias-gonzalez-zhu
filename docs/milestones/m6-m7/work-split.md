@@ -178,3 +178,220 @@ Person 1 is done when:
 - `npm run check:db` passes
 - `npm run check:data:pr` passes
 - only assigned files were modified
+
+---
+
+## Person 2 — Auth Backend (`m6-m7-auth`)
+
+### Assigned Files
+
+```text
+src/routes/auth.ts
+src/middleware/auth.ts
+```
+
+👉 **You are responsible for implementing auth logic inside these files.**  
+👉 **Do NOT modify existing files outside of these files.**  
+👉 **Do NOT modify locked contracts or files owned by other team members without team agreement.**
+
+### Main Goal
+
+Your job is to complete the **authentication backend** for M6/M7.
+
+This includes:
+
+- implementing registration, login, logout, and current-user auth routes
+- implementing auth protection middleware
+- ensuring auth flow works correctly with the shared database layer and session setup
+
+## Shared Contracts (Person 2)
+
+The following files are used by the auth layer and must remain stable:
+
+- `src/db/users.ts` — baseline database helper functions used by the auth layer
+- `src/types/types.ts` — shared TypeScript interfaces
+- `src/types/session.d.ts` — shared session typing contract
+- `src/server.ts` — shared server wiring and session setup
+- `src/routes/home.ts` — shared home flow
+- `src/routes/lobby.ts` — shared protected lobby flow
+
+👉 Do NOT modify these files without team agreement.  
+👉 Your responsibility is to ensure your auth logic matches the contracts expected by these files.
+
+### Auth Route Contract (`src/routes/auth.ts`)
+
+Preserve these routes exactly:
+
+[insert]text
+GET /auth/register
+POST /auth/register
+GET /auth/login
+POST /auth/login
+POST /auth/logout
+GET /auth/me
+[insert]
+
+Preserve these request field names exactly:
+
+[insert]text
+email
+password
+display_name
+[insert]
+
+👉 Do NOT change route paths, request field names, or redirect destinations.  
+👉 Do NOT change how `request.session.user` is structured.
+
+### Middleware Contract (`src/middleware/auth.ts`)
+
+Preserve this exported function exactly:
+
+[insert]text
+requireAuth(request, response, next)
+[insert]
+
+Expected behavior:
+
+- if `request.session.user` exists → call `next()`
+- otherwise:
+  - redirect to `/auth/login` (browser flow)  
+    OR
+  - return `401` (API flow, depending on implementation choice)
+
+👉 Do NOT rename this function or change its signature.  
+👉 Do NOT change how it is imported or used in other routes.
+
+### Implementation Reference
+
+Detailed implementation guidance is documented directly in:
+
+- `src/routes/auth.ts`
+- `src/middleware/auth.ts`
+
+👉 Follow the `TODO [Person 2]` comments inside these files.  
+👉 These files currently contain temporary browser-flow stubs that must be replaced with real auth logic using:
+
+- `src/db/users.ts`
+- `bcrypt`
+- `request.session.user`
+
+### Scripts (Person 2)
+
+- `npm run build` — Compile TypeScript
+- `npm run lint` — Check for lint errors
+- `npm run format:check` — Verify code formatting (Prettier)
+- `npm run format` — Automatically format code using Prettier
+
+- `npm run db:schema` — Create the local `users` and `session` tables from `schema-setup.sql`
+
+- `npm run check:auth` — Run automated auth verification
+- `npm run check:auth:local` — Prepare DB and run auth verification
+- `npm run check:auth:pr` — Run full pre-PR validation for auth backend
+
+- `npm run db:recreate` — Drop and recreate the local database (clean reset)
+
+### What to Run During Development
+
+Use these commands while working:
+
+```bash
+npm run dev
+npm run check:auth:local
+```
+
+Use these when needed:
+
+```bash
+npm run lint
+npm run format:check
+npm run format
+npm run build
+```
+
+If your database gets into a bad state:
+
+```bash
+npm run db:recreate
+```
+
+Then rerun:
+
+```bash
+npm run dev
+npm run check:auth:local
+```
+
+👉 `check:auth:local` will populate your database. Run `npm run db:recreate` afterward if you want to reset it.
+
+### Local Testing Flow
+
+Start the server in one terminal:
+
+```bash
+npm run dev
+```
+
+Then run auth tests in a second terminal:
+
+```bash
+npm run check:auth:local
+```
+
+This will:
+
+- start the server
+- prepare the database
+- run automated auth tests
+
+👉 Make sure the server is running before executing `check:auth:local`.  
+👉 `check:auth:local` will populate your database. Run `npm run db:recreate` afterward if you want to reset it.
+
+### Before Opening a PR
+
+Start the server in one terminal:
+
+```bash
+npm run dev
+```
+
+Then in a second terminal run:
+
+```bash
+npm run check:auth:pr
+```
+
+This runs:
+
+```text
+lint
+format:check
+build
+db:schema
+check:auth
+```
+
+👉 Make sure the server is running before executing `check:auth:pr`.  
+👉 `check:auth:pr` will populate your database. Run `npm run db:recreate` afterward if you want to reset it.  
+👉 Your branch should not open a PR until this passes locally.
+
+### PR Target
+
+[insert]text
+m6-m7-auth → m6-m7
+[insert]
+
+**👉 Follow the full PR process here:**  
+**[Pull Request Guide](../../guides/pull-request-guide.md)**
+
+### Definition of Done
+
+Person 2 is done when:
+
+- `src/routes/auth.ts` is implemented
+- `src/middleware/auth.ts` is implemented
+- auth routes preserve the locked contract
+- auth flow works with the shared `src/db/users.ts` implementation
+- `request.session.user` is used correctly
+- `npm run check:auth:local` passes
+- `npm run check:auth:pr` passes
+- only assigned files were modified

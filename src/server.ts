@@ -1,4 +1,3 @@
-// TODO [Person 2]: limited auth/session wiring
 import "dotenv/config";
 import express from "express";
 import path from "node:path";

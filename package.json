@@ -20,7 +20,7 @@
     "check:auth": "tsx src/scripts/auth/check-auth.ts",
     "check:views": "tsx src/scripts/views/check-views.ts",
     "check:auth:local": "npm run db:schema && npm run check:auth",
-    "check:auth:ci": "npm run db:schema && npm run build",
+    "check:auth:pr": "npm run lint && npm run format:check && npm run build && npm run db:schema && npm run check:auth",
     "check:data:pr": "npm run lint && npm run format:check && npm run build && npm run migrate:up && npm run check:db",
     "db:recreate": "tsx src/scripts/db/recreate-database.ts",
     "db:schema": "tsx src/scripts/db/setup-schema.ts",

@@ -1,4 +1,3 @@
-// TODO [Person 2]: optionally only if needed for the auth/session contract you freeze
 import "express-session";
 
 declare module "express-session" {

@@ -1,160 +1,157 @@
 // TODO [Person 2]:
-import { Router, type Request, type Response } from "express";
-import bcrypt from "bcrypt";
+// Preserve these auth route contracts exactly:
+// - GET /auth/register
+// - POST /auth/register
+// - GET /auth/login
+// - POST /auth/login
+// - POST /auth/logout
+// - GET /auth/me
+//
+// Preserve these request field names exactly:
+// - email
+// - password
+// - display_name
+//
+// Preserve these browser flow expectations exactly:
+// - GET /auth/register renders "auth/register"
+// - GET /auth/login renders "auth/login"
+// - successful register redirects to /lobby
+// - successful login redirects to /lobby
+// - logout redirects to /auth/login
+// - GET /auth/me returns the current authenticated user or 401
+//
+// Person 2 is responsible for replacing the temporary stub behavior
+// with real auth logic using:
+// - src/db/users.ts
+// - bcrypt
+// - request.session.user
+//
+// Do NOT rename the routes, request fields, or exported router.
 
-import { create, existing, findByEmail } from "../db/users.js";
-import type { LoginRequestBody, RegisterRequestBody } from "../types/types.js";
+import { Router, type Request, type Response } from "express";
 
 export const authRouter = Router();
 
-const SALT_ROUNDS = 10;
-
 authRouter.get("/register", (_request: Request, response: Response) => {
-  response.status(200).json({
-    message: "Register endpoint ready. Send a POST request to register a user.",
+  // TODO [Person 2]:
+  // Keep this route as GET /auth/register.
+  // For final implementation, render the register page and pass
+  // any view data needed by the template.
+  response.render("auth/register", {
+    title: "Register",
+    user: null,
   });
 });
 
 authRouter.post("/register", (request: Request, response: Response) => {
-  void (async (): Promise<void> => {
-    try {
-      const { email, password, display_name } = request.body as RegisterRequestBody;
+  // TODO [Person 2]:
+  // Replace this temporary browser-flow stub with real registration logic.
+  //
+  // Final expected behavior:
+  // - read email, password, and display_name from request.body
+  // - validate required fields
+  // - normalize email (trim + lowercase)
+  // - trim display_name
+  // - reject duplicate email using src/db/users.ts
+  // - hash password with bcrypt
+  // - create user in the database
+  // - store safe user data in request.session.user
+  // - redirect to /lobby on success
+  //
+  // Do NOT change the request field names:
+  // - email
+  // - password
+  // - display_name
+  //
+  // Do NOT change the success destination:
+  // - /lobby
+  const { email, display_name } = request.body as {
+    email?: string;
+    display_name?: string;
+  };
 
-      if (!email || !password || !display_name) {
-        response.status(400).json({
-          error: "Email, password, and display_name are required.",
-        });
-        return;
-      }
+  request.session.user = {
+    id: 1,
+    email: email?.trim().toLowerCase() || "test@example.com",
+    display_name: display_name?.trim() || "Test User",
+  };
 
-      const trimmedEmail = email.trim().toLowerCase();
-      const trimmedDisplayName = display_name.trim();
-
-      if (!trimmedEmail || !password || !trimmedDisplayName) {
-        response.status(400).json({
-          error: "Email, password, and display_name are required.",
-        });
-        return;
-      }
-
-      const userAlreadyExists = await existing(trimmedEmail);
-
-      if (userAlreadyExists) {
-        response.status(400).json({
-          error: "An account with that email already exists.",
-        });
-        return;
-      }
-
-      const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-
-      const createdUser = await create(trimmedEmail, passwordHash, trimmedDisplayName);
-
-      request.session.user = {
-        id: createdUser.id,
-        email: createdUser.email,
-        display_name: createdUser.display_name,
-      };
-
-      response.status(201).json({
-        message: "Registration successful.",
-        user: request.session.user,
-      });
-    } catch (error) {
-      console.error("Error during registration:", error);
-
-      response.status(500).json({
-        error: "Internal server error.",
-      });
-    }
-  })();
+  response.redirect("/lobby");
 });
 
 authRouter.get("/login", (_request: Request, response: Response) => {
-  response.status(200).json({
-    message: "Login endpoint ready. Send a POST request to log in.",
+  // TODO [Person 2]:
+  // Keep this route as GET /auth/login.
+  // For final implementation, render the login page and pass
+  // any view data needed by the template.
+  response.render("auth/login", {
+    title: "Login",
+    user: null,
   });
 });
 
 authRouter.post("/login", (request: Request, response: Response) => {
-  void (async (): Promise<void> => {
-    try {
-      const { email, password } = request.body as LoginRequestBody;
+  // TODO [Person 2]:
+  // Replace this temporary browser-flow stub with real login logic.
+  //
+  // Final expected behavior:
+  // - read email and password from request.body
+  // - validate required fields
+  // - normalize email (trim + lowercase)
+  // - find user by email using src/db/users.ts
+  // - compare password with bcrypt
+  // - reject invalid credentials
+  // - store safe user data in request.session.user
+  // - redirect to /lobby on success
+  //
+  // Do NOT change the request field names:
+  // - email
+  // - password
+  //
+  // Do NOT change the success destination:
+  // - /lobby
+  const { email } = request.body as {
+    email?: string;
+  };
 
-      if (!email || !password) {
-        response.status(400).json({
-          error: "Email and password are required.",
-        });
-        return;
-      }
+  request.session.user = {
+    id: 1,
+    email: email?.trim().toLowerCase() || "test@example.com",
+    display_name: "Test User",
+  };
 
-      const trimmedEmail = email.trim().toLowerCase();
-
-      if (!trimmedEmail || !password) {
-        response.status(400).json({
-          error: "Email and password are required.",
-        });
-        return;
-      }
-
-      const foundUser = await findByEmail(trimmedEmail);
-
-      if (!foundUser) {
-        response.status(401).json({
-          error: "Invalid email or password.",
-        });
-        return;
-      }
-
-      const passwordMatches = await bcrypt.compare(password, foundUser.password_hash);
-
-      if (!passwordMatches) {
-        response.status(401).json({
-          error: "Invalid email or password.",
-        });
-        return;
-      }
-
-      request.session.user = {
-        id: foundUser.id,
-        email: foundUser.email,
-        display_name: foundUser.display_name,
-      };
-
-      response.status(200).json({
-        message: "Login successful.",
-        user: request.session.user,
-      });
-    } catch (error) {
-      console.error("Error during login:", error);
-
-      response.status(500).json({
-        error: "Internal server error.",
-      });
-    }
-  })();
+  response.redirect("/lobby");
 });
 
 authRouter.post("/logout", (request: Request, response: Response) => {
-  request.session.destroy((error) => {
-    if (error) {
-      console.error("Error during logout:", error);
-
-      response.status(500).json({
-        error: "Unable to log out.",
-      });
-      return;
-    }
-
+  // TODO [Person 2]:
+  // Replace this temporary browser-flow stub with real logout logic.
+  //
+  // Final expected behavior:
+  // - destroy the session
+  // - clear the "connect.sid" cookie
+  // - redirect to /auth/login
+  //
+  // Do NOT change the route path:
+  // - POST /auth/logout
+  //
+  // Do NOT change the logout destination:
+  // - /auth/login
+  request.session.destroy(() => {
     response.clearCookie("connect.sid");
-
-    response.status(200).json({
-      message: "Logout successful.",
-    });
+    response.redirect("/auth/login");
   });
 });
 
 authRouter.get("/me", (request: Request, response: Response) => {
+  // TODO [Person 2]:
+  // Preserve this route as GET /auth/me.
+  //
+  // Final expected behavior:
+  // - if request.session.user does not exist, return 401
+  // - otherwise return the current authenticated user
+  //
+  // This route is mainly used for backend testing and verification.
   if (!request.session.user) {
     response.status(401).json({
       error: "Not authenticated.",
