@@ -1,10 +1,14 @@
-// STUB - IMPLEMENTATION NEEDED
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 
-const router = Router();
+const homeRouter = Router();
 
-router.get("/", (_req, res) => {
-  res.send("home");
+homeRouter.get("/", (request: Request, response: Response) => {
+  if (request.session.user) {
+    response.redirect("/lobby");
+    return;
+  }
+
+  response.redirect("/auth/login");
 });
 
-export default router;
+export default homeRouter;

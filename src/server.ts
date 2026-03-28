@@ -6,11 +6,12 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 
 import db from "./db/connection.js";
-import authRoutes from "./routes/auth.js";
+import { requestLogger } from "./middleware/logging.js";
+import { authRouter } from "./routes/auth.js";
 import homeRoutes from "./routes/home.js";
 import lobbyRoutes from "./routes/lobby.js";
-import testRoutes from "./routes/test.js";
-import { requestLogger } from "./middleware/logging.js";
+// Debug/testing route (not part of core app functionality)
+import { testRouter } from "./routes/test.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -52,9 +53,10 @@ app.use(
 );
 
 app.use("/", homeRoutes);
-app.use("/auth", authRoutes);
+app.use("/auth", authRouter);
 app.use("/lobby", lobbyRoutes);
-app.use("/test", testRoutes);
+// Debug/testing route (not part of core app functionality)
+app.use("/test", testRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${String(PORT)}`);
