@@ -8,7 +8,7 @@
 //
 // Expected final behavior:
 // - if request.session.user exists → call next()
-// - otherwise → reject unauthenticated access
+// - otherwise → redirect to /auth/login (browser flow)
 //
 // Do NOT rename this function or change its signature.
 // Do NOT change how it is imported or used in other routes.
@@ -17,14 +17,12 @@ import type { NextFunction, Request, Response } from "express";
 
 export function requireAuth(_request: Request, _response: Response, next: NextFunction): void {
   // TODO [Person 2]:
-  // Replace this temporary browser-flow stub with real auth protection logic.
+  // Temporary stub: always allow access.
   //
-  // Final expected behavior:
+  // Replace with:
   // - check request.session.user
-  // - if not present:
-  //     - redirect to /auth/login (browser flow)
-  //     OR return 401 (API flow, depending on design decision)
-  // - otherwise call next()
+  // - if missing → redirect("/auth/login")
+  // - otherwise → next()
 
   next();
 }
