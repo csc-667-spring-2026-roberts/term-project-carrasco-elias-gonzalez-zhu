@@ -40,6 +40,7 @@ authRouter.get("/register", (_request: Request, response: Response) => {
   response.render("auth/register", {
     title: "Register",
     user: null,
+    error: undefined,
   });
 });
 
@@ -87,6 +88,7 @@ authRouter.get("/login", (_request: Request, response: Response) => {
   response.render("auth/login", {
     title: "Login",
     user: null,
+    error: undefined,
   });
 });
 

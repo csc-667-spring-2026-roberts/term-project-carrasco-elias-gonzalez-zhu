@@ -8,6 +8,7 @@ lobbyRouter.get("/", requireAuth, (request: Request, response: Response) => {
   response.render("lobby", {
     title: "Lobby",
     user: request.session.user,
+    error: undefined,
   });
 });
 

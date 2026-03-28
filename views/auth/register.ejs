@@ -1,0 +1,49 @@
+<!-- TODO [Person 3]:
+You may add classes, styling hooks, helper text, and safe wrapper elements.
+
+Do NOT change:
+- include paths
+- form action="/auth/register"
+- form method="POST"
+- input names: email, password, display_name
+- expected render variables: title, user, error
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include("../partials/head", { title, user }) %>
+  </head>
+
+  <body>
+    <%- include("../partials/nav", { user, error }) %>
+
+    <main>
+      <h2>Register</h2>
+
+      <form action="/auth/register" method="POST">
+        <div>
+          <label for="email">Email:</label>
+          <input type="email" name="email" id="email" required />
+        </div>
+
+        <div>
+          <label for="password">Password:</label>
+          <input type="password" name="password" id="password" required />
+        </div>
+
+        <div>
+          <label for="display_name">Display Name:</label>
+          <input type="text" name="display_name" id="display_name" required />
+        </div>
+
+        <button type="submit">Register</button>
+      </form>
+
+      <p>
+        Already have an account?
+        <a href="/auth/login">Login</a>
+      </p>
+    </main>
+  </body>
+</html>
