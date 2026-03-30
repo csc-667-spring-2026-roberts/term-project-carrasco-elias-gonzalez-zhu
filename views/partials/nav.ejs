@@ -8,22 +8,25 @@ Do NOT change:
 - expected variables: user, error
 -->
 
-<nav>
-  <a href="/">Home</a>
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">Hearts Lobby</a>
 
-  <% if (typeof user !== "undefined" && user) { %>
-  <span
-    >Welcome,
-    <%= user.display_name || user.email %></span
-  >
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
 
-  <form action="/auth/logout" method="POST">
-    <button type="submit">Logout</button>
-  </form>
-  <% } else { %>
-  <a href="/auth/login">Login</a>
-  <a href="/auth/register">Register</a>
-  <% } %>
+      <% if (user) { %>
+      <span class="nav-user"> Welcome, <%= user.display_name || "Player" %> </span>
+
+      <form action="/auth/logout" method="POST" class="nav-form">
+        <button type="submit" class="btn btn-secondary btn-small">Logout</button>
+      </form>
+      <% } else { %>
+      <a href="/auth/login" class="nav-link">Login</a>
+      <a href="/auth/register" class="nav-link">Register</a>
+      <% } %>
+    </div>
+  </div>
 </nav>
 
 <% if (typeof error !== "undefined" && error) { %>

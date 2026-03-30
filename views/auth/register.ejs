@@ -12,38 +12,48 @@ Do NOT change:
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <%- include("../partials/head", { title, user }) %>
+    <%- include("../partials/head") %>
   </head>
+  <body class="app-shell">
+    <%- include("../partials/nav") %>
 
-  <body>
-    <%- include("../partials/nav", { user, error }) %>
-
-    <main>
-      <h2>Register</h2>
-
-      <form action="/auth/register" method="POST">
-        <div>
-          <label for="email">Email:</label>
-          <input type="email" name="email" id="email" required />
+    <main class="page-wrap auth-page">
+      <section class="auth-card">
+        <div class="auth-header">
+          <h1>Register</h1>
+          <p class="auth-subtitle">Create an account to join the game lobby.</p>
         </div>
 
-        <div>
-          <label for="password">Password:</label>
-          <input type="password" name="password" id="password" required />
-        </div>
+        <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+        <% } %>
 
-        <div>
-          <label for="display_name">Display Name:</label>
-          <input type="text" name="display_name" id="display_name" required />
-        </div>
+        <form action="/auth/register" method="POST" class="auth-form">
+          <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input id="email" type="email" name="email" class="form-input" required />
+          </div>
 
-        <button type="submit">Register</button>
-      </form>
+          <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <input id="password" type="password" name="password" class="form-input" required />
+          </div>
 
-      <p>
-        Already have an account?
-        <a href="/auth/login">Login</a>
-      </p>
+          <div class="form-group">
+            <label for="display_name" class="form-label">Display Name</label>
+            <input id="display_name" type="text" name="display_name" class="form-input" required />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Register</button>
+          </div>
+        </form>
+
+        <p class="auth-helper">
+          Already have an account?
+          <a href="/auth/login">Login</a>
+        </p>
+      </section>
     </main>
   </body>
 </html>
