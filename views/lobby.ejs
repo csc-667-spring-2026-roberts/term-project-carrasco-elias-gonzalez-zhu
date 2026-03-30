@@ -9,16 +9,33 @@ Do NOT change:
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <%- include("partials/head", { title, user }) %>
+    <%- include("./partials/head") %>
   </head>
+  <body class="app-shell">
+    <%- include("./partials/nav") %>
 
-  <body>
-    <%- include("partials/nav", { user, error }) %>
+    <main class="page-wrap lobby-page">
+      <section class="lobby-card">
+        <div class="lobby-header">
+          <h1>Lobby</h1>
+          <p class="lobby-subtitle">
+            <% if (user && user.display_name) { %> Welcome,
+            <strong><%= user.display_name %></strong>. You’re ready to join a game.
+            <% } else { %>
+            Welcome to the lobby.
+            <% } %>
+          </p>
+        </div>
 
-    <main>
-      <h2>Lobby</h2>
+        <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+        <% } %>
 
-      <p>Welcome to the lobby.</p>
+        <div class="lobby-panel">
+          <h2>Game Status</h2>
+          <p>This is your shared waiting area before gameplay begins.</p>
+        </div>
+      </section>
     </main>
   </body>
 </html>
