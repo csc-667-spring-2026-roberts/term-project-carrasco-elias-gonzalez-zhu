@@ -1,0 +1,54 @@
+<!-- TODO [Person 3]:
+You may add classes, styling hooks, helper text, and safe wrapper elements.
+
+Do NOT change:
+- include paths
+- form action="/auth/login"
+- form method="POST"
+- input names: email, password
+- expected render variables: title, user, error
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include("../partials/head") %>
+  </head>
+  <body class="app-shell">
+    <%- include("../partials/nav") %>
+
+    <main class="page-wrap auth-page">
+      <section class="auth-card">
+        <div class="auth-header">
+          <h1>Login</h1>
+          <p class="auth-subtitle">Sign in to continue to the lobby.</p>
+        </div>
+
+        <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+        <% } %>
+
+        <form action="/auth/login" method="POST" class="auth-form">
+          <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input id="email" type="email" name="email" class="form-input" required />
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <input id="password" type="password" name="password" class="form-input" required />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Login</button>
+          </div>
+        </form>
+
+        <p class="auth-helper">
+          Don’t have an account?
+          <a href="/auth/register">Register</a>
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

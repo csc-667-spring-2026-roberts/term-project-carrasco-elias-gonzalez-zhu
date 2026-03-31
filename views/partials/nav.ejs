@@ -1,0 +1,34 @@
+<!-- TODO [Person 3]:
+You may add classes, styling hooks, and safe wrapper elements.
+
+Do NOT change:
+- logout form action="/auth/logout"
+- logout form method="POST"
+- login/register link paths
+- expected variables: user, error
+-->
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">Hearts Lobby</a>
+
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+
+      <% if (user) { %>
+      <span class="nav-user"> Welcome, <%= user.display_name || "Player" %> </span>
+
+      <form action="/auth/logout" method="POST" class="nav-form">
+        <button type="submit" class="btn btn-secondary btn-small">Logout</button>
+      </form>
+      <% } else { %>
+      <a href="/auth/login" class="nav-link">Login</a>
+      <a href="/auth/register" class="nav-link">Register</a>
+      <% } %>
+    </div>
+  </div>
+</nav>
+
+<% if (typeof error !== "undefined" && error) { %>
+<div class="error"><%= error %></div>
+<% } %>

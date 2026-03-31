@@ -222,22 +222,22 @@ The following files are used by the auth layer and must remain stable:
 
 Preserve these routes exactly:
 
-[insert]text
+```text
 GET /auth/register
 POST /auth/register
 GET /auth/login
 POST /auth/login
 POST /auth/logout
 GET /auth/me
-[insert]
+```
 
 Preserve these request field names exactly:
 
-[insert]text
+```text
 email
 password
 display_name
-[insert]
+```
 
 👉 Do NOT change route paths, request field names, or redirect destinations.  
 👉 Do NOT change how `request.session.user` is structured.
@@ -246,9 +246,9 @@ display_name
 
 Preserve this exported function exactly:
 
-[insert]text
+```text
 requireAuth(request, response, next)
-[insert]
+```
 
 Expected behavior:
 
@@ -376,9 +376,9 @@ check:auth
 
 ### PR Target
 
-[insert]text
+```text
 m6-m7-auth → m6-m7
-[insert]
+```
 
 **👉 Follow the full PR process here:**  
 **[Pull Request Guide](../../guides/pull-request-guide.md)**
@@ -394,4 +394,339 @@ Person 2 is done when:
 - `request.session.user` is used correctly
 - `npm run check:auth:local` passes
 - `npm run check:auth:pr` passes
+- only assigned files were modified
+
+---
+
+## Person 3 — Views / UI (`m6-m7-ui`)
+
+### Assigned Files
+
+```text
+views/auth/login.ejs
+views/auth/register.ejs
+views/lobby.ejs
+views/partials/head.ejs
+views/partials/nav.ejs
+public/css/main.css
+```
+
+👉 **You are responsible for styling and improving the UI inside these files.**  
+👉 **Do NOT modify existing files outside of these files.**  
+👉 **Do NOT modify locked contracts or files owned by other team members without team agreement.**
+
+## Shared Contracts (Person 3)
+
+The following files are used by the UI layer and must remain stable:
+
+- `src/routes/auth.ts` — shared auth route flow and render contract
+- `src/routes/home.ts` — shared home redirect flow
+- `src/routes/lobby.ts` — shared lobby render flow
+- `src/middleware/auth.ts` — shared auth middleware contract
+- `src/types/session.d.ts` — shared session typing contract
+
+👉 Do NOT modify these files without team agreement.  
+👉 Your responsibility is to ensure your UI changes match the contracts expected by these files.
+
+### UI Contract (`views/**`, `public/css/main.css`)
+
+The UI must preserve the existing browser flow and backend-connected form contracts.
+
+#### `views/auth/register.ejs`
+
+This page is used for the register flow.
+
+Preserve this page flow exactly:
+
+```text
+GET /auth/register → renders register page
+successful register → redirects to /lobby
+```
+
+Preserve this form contract exactly:
+
+```text
+form action="/auth/register"
+method="POST"
+input names: email, password, display_name
+```
+
+Expected render variables used by this page:
+
+```text
+title
+user
+error
+```
+
+👉 You may add classes, styling hooks, helper text, and safe wrapper elements.  
+👉 Do NOT change include paths, form action, form method, input names, or expected render variables.
+
+#### `views/auth/login.ejs`
+
+This page is used for the login flow.
+
+Preserve this page flow exactly:
+
+```text
+GET /auth/login → renders login page
+successful login → redirects to /lobby
+```
+
+Preserve this form contract exactly:
+
+```text
+form action="/auth/login"
+method="POST"
+input names: email, password
+```
+
+Expected render variables used by this page:
+
+```text
+title
+user
+error
+```
+
+👉 You may add classes, styling hooks, helper text, and safe wrapper elements.  
+👉 Do NOT change include paths, form action, form method, input names, or expected render variables.
+
+#### `views/lobby.ejs`
+
+This page is used for the lobby flow after login or registration.
+
+Preserve this page flow exactly:
+
+```text
+GET /lobby → renders lobby page
+```
+
+Expected render variables used by this page:
+
+```text
+title
+user
+error
+```
+
+👉 You may add classes, styling hooks, helper text, and safe wrapper elements.  
+👉 Do NOT change include paths or expected render variables.
+
+#### `views/partials/nav.ejs`
+
+This partial is used across pages for navigation and logout flow.
+
+Preserve this flow exactly:
+
+```text
+logout → POST /auth/logout → redirects to /auth/login
+```
+
+Preserve this contract exactly:
+
+```text
+logout form action="/auth/logout"
+logout form method="POST"
+login link path="/auth/login"
+register link path="/auth/register"
+```
+
+Expected render variables used by this partial:
+
+```text
+user
+error
+```
+
+👉 You may add classes, styling hooks, helper text, and safe wrapper elements.  
+👉 Do NOT change logout form action, logout form method, login/register link paths, or expected render variables.
+
+#### `views/partials/head.ejs`
+
+This partial is used across pages for shared document head content.
+
+Preserve this contract exactly:
+
+```text
+CSS path: /css/main.css
+uses title variable
+```
+
+Expected render variables used by this partial:
+
+```text
+title
+user
+```
+
+👉 You may add classes, meta tags, fonts, or styling hooks.  
+👉 Do NOT change the CSS path or the use of the `title` variable.
+
+#### `public/css/main.css`
+
+This file is used for all UI styling.
+
+👉 You may fully customize layout, spacing, colors, typography, and responsive behavior.  
+👉 Do NOT rename the file or change the stylesheet path expected by `head.ejs`.
+
+### Implementation Reference
+
+Detailed implementation guidance is documented directly in:
+
+- `views/auth/login.ejs`
+- `views/auth/register.ejs`
+- `views/lobby.ejs`
+- `views/partials/head.ejs`
+- `views/partials/nav.ejs`
+- `public/css/main.css`
+
+👉 Follow the `TODO [Person 3]` comments inside these files.  
+👉 These files are starter templates for styling and layout polish.  
+👉 You may add classes, styling hooks, helper text, and safe wrapper elements, as long as you preserve the existing form and render contracts.
+
+### Scripts (Person 3)
+
+- `npm run build` — Compile TypeScript
+- `npm run lint` — Check for lint errors
+- `npm run format:check` — Verify code formatting (Prettier)
+- `npm run format` — Automatically format code using Prettier
+
+- `npm run check:ui:pr` — Run full pre-PR validation for UI (lint, format, build)
+
+### What to Run During Development
+
+Use these commands while working:
+
+```bash
+npm run dev
+```
+
+👉 To stop the server, press:
+
+```text
+Ctrl + C
+```
+
+Use these when needed:
+
+```bash
+npm run lint
+npm run format:check
+npm run format
+npm run build
+```
+
+### Local Testing Flow
+
+Start the server in one terminal:
+
+```bash
+npm run dev
+```
+
+Then test the UI manually in your browser:
+
+- Login: **http://localhost:3000/auth/login**
+- Register: **http://localhost:3000/auth/register**
+- Lobby: **http://localhost:3000/lobby**
+
+Test the full flow:
+
+1. Open: **http://localhost:3000/auth/register**
+   - You should see the register page with form fields.
+
+2. Enter values:
+   - email: anything (e.g., **test@test.com**)
+   - password: anything (e.g., test)
+   - display_name: anything (e.g., Test)
+
+3. Submit the form
+   - You should be redirected to: **http://localhost:3000/lobby**
+   - Navbar should now show:
+     - **Home | Welcome, <display_name> | [Logout Button]**
+
+4. Refresh the page (while still on /lobby)
+   - You should remain on /lobby
+   - Session should persist
+   - Navbar should still show logged-in state
+
+5. Click the **Home** link in the navbar  
+   OR navigate to: **http://localhost:3000/**
+   - You should be redirected back to `/lobby` (because session exists)
+
+6. Click the Logout button
+   - You should be redirected to: **http://localhost:3000/auth/login**
+   - Navbar should switch back to:
+     - **Home | Login | Register**
+
+7. Try accessing: **http://localhost:3000/lobby**
+   - You may still see the lobby (middleware is currently stubbed)
+   - Navbar should show logged-out state (no user)
+
+8. From **http://localhost:3000/auth/login**  
+   OR clicking the **Login** link in the navbar
+   - Enter any email/password
+   - Submit the form
+
+9. You should be redirected again to: **http://localhost:3000/lobby**
+   - Navbar shows: **Welcome, Test User**
+   - This is from the temporary auth stub (not real user data yet)
+
+This will verify:
+
+- pages render correctly
+- forms submit correctly
+- redirects work
+- navbar updates based on session
+- no console or server errors
+
+👉 Make sure the server is running before testing.
+👉 Some features may not behave fully as expected because auth and database logic are still stubbed and not fully integrated.
+
+### Before Opening a PR
+
+Run:
+
+```bash
+npm run check:ui:pr
+```
+
+This runs:
+
+```text
+lint
+format:check
+build
+```
+
+Then manually verify:
+
+- pages render correctly
+- forms submit correctly
+- redirects work
+- navbar updates based on session
+- no console or server errors
+
+👉 Your branch should not open a PR until both automated checks and manual UI flow pass locally.
+
+### PR Target
+
+```text
+m6-m7-ui → m6-m7
+```
+
+### Definition of Done
+
+Person 3 is done when:
+
+- all assigned EJS files render correctly
+- partials (`head.ejs`, `nav.ejs`) are used consistently across pages
+- UI changes preserve all route, form, and render contracts
+- forms submit correctly and follow expected browser flow
+- navbar updates correctly based on session state
+- EJS files include design improvements such as classes, styling hooks, helper text, and safe wrapper elements (without breaking contracts)
+- CSS (`public/css/main.css`) is updated to improve layout, readability, and overall user experience
+- manual UI test suite passes
+- `npm run check:ui:pr` passes
 - only assigned files were modified
