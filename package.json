@@ -18,6 +18,7 @@
     "migrate:down": "node-pg-migrate down -j ts --tsconfig tsconfig.migrations.json",
     "check:db": "tsx src/scripts/db/check-database.ts",
     "check:auth": "tsx src/scripts/auth/check-auth.ts",
+    "check:base:pr": "npm ci && npm run lint && npm run format:check && npm run build",
     "check:auth:local": "npm run db:schema && npm run check:auth",
     "check:auth:pr": "npm run lint && npm run format:check && npm run build && npm run db:schema && npm run check:auth",
     "check:data:pr": "npm run lint && npm run format:check && npm run build && npm run migrate:up && npm run check:db",
