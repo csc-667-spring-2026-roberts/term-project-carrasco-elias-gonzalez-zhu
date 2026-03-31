@@ -15,7 +15,11 @@
 
 import type { NextFunction, Request, Response } from "express";
 
-export function requireAuth(_request: Request, _response: Response, next: NextFunction): void {
+function wantsJson(request: Request): boolean {
+  return Boolean(request.is("application/json") || request.accepts("json"));
+}
+
+export function requireAuth(request: Request, response: Response, next: NextFunction): void {
   // TODO [Person 2]:
   // Temporary stub: always allow access.
   //
@@ -24,5 +28,15 @@ export function requireAuth(_request: Request, _response: Response, next: NextFu
   // - if missing → redirect("/auth/login")
   // - otherwise → next()
 
-  next();
+  if (request.session.user) {
+    next();
+    return;
+  }
+
+  if (wantsJson(request)) {
+    response.status(401).json({ error: "Not authenticated." });
+    return;
+  }
+
+  response.redirect("/auth/login");
 }
