@@ -16,13 +16,15 @@ This guide only covers **new work required for M8**.
 ## 📅 Due Dates (Jonathan)
 
 ### Thursday 04/02 (End of Day)
+
 - Pull latest from `m8`
 - Complete database implementation
 - Open PR → `m8`
 
 ### Sunday 04/05 (End of Day)
-- Prepare slides  
-- Prepare presenter notes  
+
+- Prepare slides
+- Prepare presenter notes
 
 **👉 Access the slides and presenter notes here:**  
 **[M8 Slides Guide](m8-slides-guide.md)**
@@ -113,8 +115,8 @@ The following files are shared across layers and must remain stable:
 
 - src/db/connection.ts
 - src/types/types.ts
-- docs/examples/_create-games-table.example.ts
-- docs/examples/_create-game-users-table.example.ts
+- docs/examples/\_create-games-table.example.ts
+- docs/examples/\_create-game-users-table.example.ts
 
 👉 Use these as references.  
 👉 Do NOT modify them without team agreement.
@@ -143,8 +145,8 @@ migrations/
 
 - Implement the tables inside the generated migration files
 - Follow the structure from:
-  - docs/examples/_create-games-table.example.ts
-  - docs/examples/_create-game-users-table.example.ts
+  - docs/examples/\_create-games-table.example.ts
+  - docs/examples/\_create-game-users-table.example.ts
 
 👉 Do NOT modify the example files.  
 👉 Your migration files must match the expected schema exactly.
@@ -462,8 +464,10 @@ Verify:
 Inside psql, run:
 
 ```sql
-INSERT INTO games DEFAULT VALUES
-RETURNING *;
+INSERT INTO
+  games DEFAULT
+VALUES
+  RETURNING *;
 ```
 
 Verify:
@@ -477,15 +481,20 @@ Verify:
 First, check available users:
 
 ```sql
-SELECT id, email FROM users;
+SELECT
+  id,
+  email
+FROM
+  users;
 ```
 
 Then insert a row using a valid user id and the game id from Step 6:
 
 ```sql
-INSERT INTO game_users (game_id, user_id)
-VALUES (<game_id>, <user_id>)
-RETURNING *;
+INSERT INTO
+  game_users (game_id, user_id)
+VALUES
+  (< game_id >, < user_id >) RETURNING *;
 ```
 
 Verify:
@@ -498,8 +507,10 @@ Verify:
 Inside psql, run:
 
 ```sql
-INSERT INTO game_users (game_id, user_id)
-VALUES (<game_id>, <user_id>);
+INSERT INTO
+  game_users (game_id, user_id)
+VALUES
+  (< game_id >, < user_id >);
 ```
 
 Verify:
@@ -513,14 +524,19 @@ Inside psql, run:
 
 ```sql
 DELETE FROM games
-WHERE id = <game_id>;
+WHERE
+  id = < game_id >;
 ```
 
 Then run:
 
 ```sql
-SELECT * FROM game_users
-WHERE game_id = <game_id>;
+SELECT
+  *
+FROM
+  game_users
+WHERE
+  game_id = < game_id >;
 ```
 
 Verify:

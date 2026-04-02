@@ -16,14 +16,17 @@ This guide only covers **new work required for M8**.
 ## 📅 Due Dates (Marbella)
 
 ### Friday 04/03 (End of Day)
+
 - Pull latest from `m8`
 - Complete API implementation
 - Open PR → `m8`
 
 ### Sunday 04/05 (End of Day)
-- Prepare rough demo plan  
+
+- Prepare rough demo plan
 
 ### Monday 04/06
+
 - Present the project
 - Run demo using `main`
 
@@ -378,7 +381,10 @@ npx dotenv -e .env -- psql "$DATABASE_URL"
 Then run:
 
 ```sql
-SELECT * FROM games;
+SELECT
+  *
+FROM
+  games;
 ```
 
 Verify:
@@ -388,7 +394,10 @@ Verify:
 Then run:
 
 ```sql
-SELECT * FROM game_users;
+SELECT
+  *
+FROM
+  game_users;
 ```
 
 Verify:

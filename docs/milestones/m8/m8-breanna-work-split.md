@@ -16,6 +16,7 @@ This guide only covers **new work required for M8**.
 ## 📅 Due Dates (Breanna)
 
 ### Sunday 04/05 (End of Day)
+
 - Pull latest from `m8`
 - Complete frontend implementation
 - Open PR → `m8`

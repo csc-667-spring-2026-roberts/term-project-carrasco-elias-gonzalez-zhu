@@ -19,10 +19,10 @@ Show that the system works end-to-end:
 
 **Expected visible results:**
 
-- Lobby page loads without errors  
-- Games list is displayed  
-- Clicking "Create Game" adds a new game  
-- Refreshing the page shows persisted data  
+- Lobby page loads without errors
+- Games list is displayed
+- Clicking "Create Game" adds a new game
+- Refreshing the page shows persisted data
 
 ---
 
@@ -35,7 +35,6 @@ Show that the system works end-to-end:
 ### 2. Step 2
 
 [insert notes here]
-
 
 ### 3. Step 3
 
@@ -51,15 +50,15 @@ Show that the system works end-to-end:
 
 ## 🎮 Demo Flow
 
-### Step 1 — 
+### Step 1 —
 
 [insert notes here]
 
-### Step 2 — 
+### Step 2 —
 
 [insert notes here]
 
-### Step 3 — 
+### Step 3 —
 
 [insert notes here]
 
