@@ -1,7 +1,16 @@
-/* TODO [Person 3]:
-You are responsible for all styling.
+/*
+  TODO Breanna:
+  You may fully customize styling in this file.
 
-You may define layout, spacing, colors, typography, and responsive behavior.
+  Allowed:
+  - layout, spacing, colors, typography, responsiveness
+  - adding new classes
+
+  Do NOT:
+  - rename or remove this file
+  - change paths expected by head.ejs
+
+  This file controls all UI styling for the project.
 */
 
 * {

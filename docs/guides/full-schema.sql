@@ -6,6 +6,7 @@
 -- - removed games.host_user_id
 -- - standardized game_players -> game_users
 -- - creator/host is now derived from earliest joined_at in game_users
+-- - added default games.status = 'waiting'
 -- - case-insensitive email + games index
 --
 -- Reference schema for the Hearts project.
@@ -38,7 +39,7 @@ CREATE TABLE cards (
 
 CREATE TABLE games (
   id SERIAL PRIMARY KEY,
-  status VARCHAR(20) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'waiting',
   max_players INT NOT NULL DEFAULT 4,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   started_at TIMESTAMP,
