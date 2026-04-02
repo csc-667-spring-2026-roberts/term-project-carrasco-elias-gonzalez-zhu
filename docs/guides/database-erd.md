@@ -1,4 +1,4 @@
-# Pull Request Guide
+# Database ERD
 
 **CSC 667 Term Project**
 
@@ -10,16 +10,11 @@
   - added case-insensitive email index
   - added relationship indexes for performance
 
-This document shows the current database schema for the Hearts project.
-
-**Note:** This is a reference diagram. The source of truth is the migrations.
+This is the reference ERD for the Hearts project.  
+The source of truth is `migrations/`.
 
 ---
 
 ## Full Schema Diagram
 
-**Click the diagram below to view a full-size version:**
-
-<a href="./full-schema.svg">
-  <img src="./full-schema.svg" width="1000" />
-</a>
+<img src="./full-schema.svg" width="1000" />
