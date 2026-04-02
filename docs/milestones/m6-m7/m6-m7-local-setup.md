@@ -4,7 +4,7 @@
 **Milestone: M6/M7 (Authentication/Templating)**
 
 👉 **Before proceeding**, ensure you have completed all steps in  
-**[M5 Local Setup Guide](../m5/local-setup.md)**
+**[M5 Local Setup Guide](../m5/m5-local-setup.md)**
 
 This guide only covers **new setup required for M6/M7**.
 
@@ -110,7 +110,7 @@ This helps prevent issues with unsaved files when running scripts or checks.
 
 Once setup is complete, continue with:
 
-👉 **[M6/M7 Work Split](work-split.md)**
+👉 **[M6/M7 Work Split](m6-m7-work-split.md)**
 
 This document outlines:
 

@@ -1,4 +1,4 @@
-# M4 (Slides Link)
+# M5 (Slides Link)
 
 **CSC 667 Term Project**\
 **Milestone: M4 (Express Setup)**
@@ -105,4 +105,4 @@ Slide deck is a continuation from **[M4 Slides](../m4/m4-slides-link.md)**
 
 - Executes demo
 
-**Follow [M5 (Demo Checklist)](demo-checklist.md) for full script and steps for demo.**
+**Follow [M5 (Demo Checklist)](m5-demo-checklist.md) for full script and steps for demo.**

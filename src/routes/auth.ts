@@ -39,7 +39,10 @@ export const authRouter = Router();
 const BCRYPT_ROUNDS = 10;
 
 function wantsJson(request: Request): boolean {
-  return Boolean(request.is("application/json") || request.accepts("json"));
+  const contentType = request.get("content-type") || "";
+  const accept = request.get("accept") || "";
+
+  return contentType.includes("application/json") || accept.includes("application/json");
 }
 
 function toSessionUser(user: Pick<User, "id" | "email" | "display_name">): {

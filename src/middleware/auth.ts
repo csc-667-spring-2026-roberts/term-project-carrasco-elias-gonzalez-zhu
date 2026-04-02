@@ -16,7 +16,10 @@
 import type { NextFunction, Request, Response } from "express";
 
 function wantsJson(request: Request): boolean {
-  return Boolean(request.is("application/json") || request.accepts("json"));
+  const contentType = request.get("content-type") || "";
+  const accept = request.get("accept") || "";
+
+  return contentType.includes("application/json") || accept.includes("application/json");
 }
 
 export function requireAuth(request: Request, response: Response, next: NextFunction): void {

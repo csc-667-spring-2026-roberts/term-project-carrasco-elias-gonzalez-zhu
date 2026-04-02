@@ -8,7 +8,7 @@
 > This guide outlines what each team member must do for M5.
 
 👉 **Before proceeding**, ensure you have completed all steps in  
-**[M4 Local Setup & Verification Guide](../m4/local-setup.md)**
+**[M4 Local Setup & Verification Guide](../m4/m4-local-setup.md)**
 
 ---
 
@@ -26,7 +26,7 @@ npm ci
 
 Install and connect to PostgreSQL locally by following:
 
-👉 **[M5 PostgreSQL Installation Guide](postgresql-installation.md)→ Step 1 - 4**
+👉 **[M5 PostgreSQL Installation Guide](m5-postgresql-installation.md)→ Step 1 - 4**
 
 ---
 
@@ -34,7 +34,7 @@ Install and connect to PostgreSQL locally by following:
 
 Create and verify your local database by following:
 
-👉 **[M5 PostgreSQL Installation Guide](postgresql-installation.md) → Step 5 (Create Database)**
+👉 **[M5 PostgreSQL Installation Guide](m5-postgresql-installation.md) → Step 5 (Create Database)**
 
 Expected:
 
@@ -48,7 +48,7 @@ Expected:
 
 Create and configure your `.env` file by following:
 
-👉 **[M5 PostgreSQL Installation Guide](postgresql-installation.md) → Step 6 (Configure DATABASE_URL)**
+👉 **[M5 PostgreSQL Installation Guide](m5-postgresql-installation.md) → Step 6 (Configure DATABASE_URL)**
 
 Expected:
 
@@ -63,7 +63,7 @@ Expected:
 
 Run the database schema setup by following:
 
-👉 **[M5 PostgreSQL Installation Guide](postgresql-installation.md) → Step 7 (Run Smoke Test)**
+👉 **[M5 PostgreSQL Installation Guide](m5-postgresql-installation.md) → Step 7 (Run Smoke Test)**
 
 Expected:
 
@@ -72,7 +72,7 @@ Expected:
 
 **Any errors refer to:**
 
-👉 **[M5 PostgreSQL Installation Guide](postgresql-installation.md) → Troubleshooting**
+👉 **[M5 PostgreSQL Installation Guide](m5-postgresql-installation.md) → Troubleshooting**
 
 ---
 

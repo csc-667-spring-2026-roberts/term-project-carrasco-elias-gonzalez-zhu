@@ -7,7 +7,7 @@ Work is divided by layer ownership to enable parallel development.
 Each person owns a set of files and must implement within those boundaries.
 
 👉 After completing **Step 5** in the  
-**[M6/M7 Local Setup Guide](local-setup.md)**, continue with the tasks below.
+**[M6/M7 Local Setup Guide](m6-m7-local-setup.md)**, continue with the tasks below.
 
 ---
 
@@ -715,6 +715,8 @@ Then manually verify:
 ```text
 m6-m7-ui → m6-m7
 ```
+**👉 Follow the full PR process here:**  
+**[Pull Request Guide](../../guides/pull-request-guide.md)**
 
 ### Definition of Done
 

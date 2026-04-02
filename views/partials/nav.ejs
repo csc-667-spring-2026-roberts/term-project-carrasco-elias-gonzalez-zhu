@@ -29,6 +29,6 @@ Do NOT change:
   </div>
 </nav>
 
-<% if (typeof error !== "undefined" && error) { %>
-<div class="error"><%= error %></div>
+<% if (error) { %>
+<div class="alert alert-error"><%= error %></div>
 <% } %>

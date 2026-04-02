@@ -7,7 +7,7 @@
 
 This document explains structural additions made for M5.  
 Only **new or modified components introduced in M5** are described below.  
-All previously documented M4 architecture remains unchanged (see **[M4 File Structure & Architecture](../m4/file-structure-architecture.md)**).
+All previously documented M4 architecture remains unchanged (see **[M4 File Structure & Architecture](../m4/m4-file-structure-architecture.md)**).
 
 ---
 
