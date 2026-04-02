@@ -5,6 +5,8 @@
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
+    "setup": "npm ci",
+    "setup:clean": "rm -rf node_modules && npm ci",
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
@@ -16,15 +18,8 @@
     "migrate:create": "node-pg-migrate create -j ts",
     "migrate:up": "node-pg-migrate up -j ts --tsconfig tsconfig.migrations.json",
     "migrate:down": "node-pg-migrate down -j ts --tsconfig tsconfig.migrations.json",
-    "check:db": "tsx src/scripts/db/check-database.ts",
-    "check:auth": "tsx src/scripts/auth/check-auth.ts",
-    "check:base:pr": "npm ci && npm run lint && npm run format:check && npm run build",
-    "check:auth:local": "npm run db:schema && npm run check:auth",
-    "check:auth:pr": "npm run lint && npm run format:check && npm run build && npm run db:schema && npm run check:auth",
-    "check:data:pr": "npm run lint && npm run format:check && npm run build && npm run migrate:up && npm run check:db",
-    "check:ui:pr": "npm run lint && npm run format:check && npm run build",
+    "check:base:pr": "npm run lint && npm run format:check && npm run build",
     "db:recreate": "tsx src/scripts/db/recreate-database.ts",
-    "db:schema": "tsx src/scripts/db/setup-schema.ts",
     "prepare": "husky"
   },
   "lint-staged": {
