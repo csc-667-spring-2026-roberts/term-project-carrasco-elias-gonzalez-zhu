@@ -17,4 +17,4 @@ The source of truth is `migrations/`.
 
 ## Full Schema Diagram
 
-<img src="./full-schema.svg" width="1000" />
+<img src="./database-erd.svg" width="1000" />
