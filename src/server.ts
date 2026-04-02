@@ -14,6 +14,9 @@ import { authRouter } from "./routes/auth.js";
 import homeRoutes from "./routes/home.js";
 import lobbyRoutes from "./routes/lobby.js";
 
+// TODO Marbella:
+// Import the games router here for M8.
+
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
@@ -67,6 +70,9 @@ app.use(
 app.use("/", homeRoutes);
 app.use("/auth", authRouter);
 app.use("/lobby", lobbyRoutes);
+
+// TODO Marbella:
+// Mount the games API routes here for M8.
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${String(PORT)}`);
