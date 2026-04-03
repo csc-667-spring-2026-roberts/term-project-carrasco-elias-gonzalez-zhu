@@ -2,52 +2,59 @@
  * DB Layer: Games
  *
  * This file is responsible for all database operations related to games.
- *
- * TODO Jonathan:
- * Implement the functions below using pg-promise.
- *
- * Guidelines:
- * - Follow the same pattern used in users.ts
- * - Use parameterized queries (no string interpolation)
- * - Keep logic focused on DB access only (no business logic)
- * - See docs/examples for migration structure and expected schema
- *
- * M8 Scope:
- * - Only support basic game creation and listing
- * - Do NOT include gameplay logic yet
  */
+
+import db from "./connection.js";
+import type { Game, GameListItem } from "../types/types.js";
 
 /**
  * Creates a new game and inserts the creator into game_users.
  *
- * Requirements:
- * 1. Insert a new row into the "games" table
- *    - Use default values
- *    - status should default to "waiting"
- *
- * 2. Insert the creator into "game_users"
- *    - game_id = newly created game id
- *    - user_id = provided userId
- *    - joined_at = default timestamp
- *
- * Notes:
- * - Creator/host is NOT stored explicitly
- * - It is derived later from the earliest joined_at
+ * Creator/host is not stored explicitly; it is derived from the earliest joined_at.
  */
-export function createGame(_userId: number): Promise<void> {
-  throw new Error("Not implemented.");
+export async function createGame(userId: number): Promise<Game> {
+  return db.tx(async (t) => {
+    const game = await t.one<Game>(
+      `
+        INSERT INTO games DEFAULT VALUES
+        RETURNING id, status, created_at
+      `,
+    );
+
+    await t.none(
+      `
+        INSERT INTO game_users (game_id, user_id)
+        VALUES ($1, $2)
+      `,
+      [game.id, userId],
+    );
+
+    return game;
+  });
 }
 
 /**
- * Returns all games for the lobby view.
- *
- * Requirements:
- * - Return a list of games with relevant information for display
- *
- * Notes:
- * - Data may come from multiple tables
- * - Order results by created_at DESC (newest first)
+ * Returns all games for the lobby view, newest first.
  */
-export function listGames(): Promise<void> {
-  throw new Error("Not implemented.");
+export async function listGames(): Promise<GameListItem[]> {
+  return db.manyOrNone<GameListItem>(
+    `
+      SELECT
+        g.id,
+        g.status,
+        g.created_at,
+        u.email AS creator_email,
+        COUNT(gu_all.user_id)::int AS player_count
+      FROM games g
+      INNER JOIN (
+        SELECT DISTINCT ON (game_id) game_id, user_id
+        FROM game_users
+        ORDER BY game_id, joined_at ASC
+      ) gu_first ON gu_first.game_id = g.id
+      INNER JOIN users u ON u.id = gu_first.user_id
+      INNER JOIN game_users gu_all ON gu_all.game_id = g.id
+      GROUP BY g.id, g.status, g.created_at, u.email
+      ORDER BY g.created_at DESC
+    `,
+  );
 }
