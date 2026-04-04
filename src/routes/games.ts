@@ -1,36 +1,41 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
+import { createGame, listGames } from "../db/games.js";
 
 export const gamesRouter = Router();
 
-/**
- * API Layer: Games
- *
- * TODO Marbella:
- * Implement the routes for game creation and listing.
- *
- * Guidelines:
- * - Use functions from src/db/games.ts
- * - Keep routes focused on request/response handling
- * - Do NOT write SQL here (that belongs in the DB layer)
- *
- * M8 Endpoints:
- *
- * 1. GET /api/games
- *    - Return all games for the lobby
- *    - Response format:
- *      { games: [...] }
- *
- * 2. POST /api/games
- *    - Create a new game
- *    - Requires authenticated user
- *    - Use user id from session (req.session.user.id)
- *    - Return created game as JSON
- *
- * Notes:
- * - These endpoints are temporary for M8 (used by frontend fetch)
- * - Later milestones will replace this with real-time updates
- *
- * Hint:
- * - Define a GET route for listing games
- * - Define a POST route for creating a game
- */
+async function handleGetGames(request: Request, response: Response): Promise<void> {
+  if (!request.session.user) {
+    response.status(401).json({
+      error: "Not authenticated.",
+    });
+    return;
+  }
+
+  const games = await listGames();
+
+  response.status(200).json({
+    games,
+  });
+}
+
+async function handlePostGames(request: Request, response: Response): Promise<void> {
+  if (!request.session.user) {
+    response.status(401).json({
+      error: "Not authenticated.",
+    });
+    return;
+  }
+
+  const userId = request.session.user.id;
+  const game = await createGame(userId);
+
+  response.status(201).json(game);
+}
+
+gamesRouter.get("/", (request, response, next) => {
+  void handleGetGames(request, response).catch(next);
+});
+
+gamesRouter.post("/", (request, response, next) => {
+  void handlePostGames(request, response).catch(next);
+});
