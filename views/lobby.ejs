@@ -1,10 +1,16 @@
-<!-- TODO [Person 3]:
-You may add classes, styling hooks, helper text, and safe wrapper elements.
+<%#
+  TODO Breanna:
+  You may update styling (classes, layout, structure) in this file.
 
-Do NOT change:
-- include paths
-- expected render variables: title, user, error
--->
+  Constraints:
+  - Do NOT remove or rename required IDs:
+      - #games-list
+      - #create-game
+  - Do NOT remove script: /js/lobby.js
+  - Do NOT remove usage of "user", "title", or "error"
+
+  This file defines the DOM contract used by src/client/lobby.ts.
+  %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -31,11 +37,40 @@ Do NOT change:
         <div class="alert alert-error"><%= error %></div>
         <% } %>
 
-        <div class="lobby-panel">
-          <h2>Game Status</h2>
-          <p>This is your shared waiting area before gameplay begins.</p>
+        <!-- TODO Breanna:
+             Use #create-game and #games-list in src/client/lobby.ts for M8 lobby behavior. -->
+
+        <div class="games-card">
+          <div class="games-header">
+            <h2>Games</h2>
+            <button id="create-game" class="create-btn">Create Game</button>
+          </div>
+
+          <div id="games-list" class="games-list">
+            <!-- Games will be rendered here by src/client/lobby.ts -->
+          </div>
+          <!-- ADD TEMPLATE HERE -->
+          <template id="game-template">
+            <div class="game-item">
+              <div class="game-info">
+                <span class="game-title"></span>
+                <span class="game-players"></span>
+              </div>
+              <button class="join-btn">Join</button>
+            </div>
+          </template>
+
+          <template id="empty-template">
+            <p class="empty">No games yet.</p>
+          </template>
+
+          <template id="error-template">
+            <p class="empty">Error loading games</p>
+          </template>
         </div>
       </section>
     </main>
+
+    <script src="/js/lobby.js" defer></script>
   </body>
 </html>

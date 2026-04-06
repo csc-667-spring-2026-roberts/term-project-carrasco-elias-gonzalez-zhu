@@ -5,5 +5,13 @@
   "useTabs": false,
   "trailingComma": "all",
   "printWidth": 100,
-  "plugins": ["prettier-plugin-ejs"]
+  "plugins": ["prettier-plugin-ejs", "prettier-plugin-sql"],
+  "overrides": [
+    {
+      "files": "*.sql",
+      "options": {
+        "parser": "sql"
+      }
+    }
+  ]
 }

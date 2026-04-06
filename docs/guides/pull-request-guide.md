@@ -1,4 +1,4 @@
-Pull Request Guide
+# Pull Request Guide
 
 **CSC 667 Term Project**
 
