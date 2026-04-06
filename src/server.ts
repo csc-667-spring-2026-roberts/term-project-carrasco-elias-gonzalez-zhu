@@ -72,6 +72,7 @@ app.use("/", homeRoutes);
 app.use("/auth", authRouter);
 app.use("/lobby", lobbyRoutes);
 app.use("/api/games", gamesRouter);
+app.use("/games", gamesRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${String(PORT)}`);

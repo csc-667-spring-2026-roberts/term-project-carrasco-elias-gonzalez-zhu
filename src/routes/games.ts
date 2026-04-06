@@ -39,3 +39,20 @@ gamesRouter.get("/", (request, response, next) => {
 gamesRouter.post("/", (request, response, next) => {
   void handlePostGames(request, response).catch(next);
 });
+
+//  render game page
+gamesRouter.get("/:id", (request: Request, response: Response) => {
+  if (!request.session.user) {
+    response.redirect("/auth/login");
+    return;
+  }
+
+  const gameId = request.params.id;
+
+  response.render("game", {
+    title: "Game",
+    gameId,
+    user: request.session.user,
+    error: null,
+  });
+});
