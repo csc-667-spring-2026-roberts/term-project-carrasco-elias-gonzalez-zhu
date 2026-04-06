@@ -23,10 +23,10 @@ export async function createGame(userId: number): Promise<Game> {
 
     await t.none(
       `
-        INSERT INTO game_users (game_id, user_id,seat)
-        VALUES ($1, $2, $3)
+        INSERT INTO game_users (game_id, user_id)
+        VALUES ($1, $2)
       `,
-      [game.id, userId, 1],
+      [game.id, userId],
     );
 
     return game;
