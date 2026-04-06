@@ -39,14 +39,34 @@
 
         <!-- TODO Breanna:
              Use #create-game and #games-list in src/client/lobby.ts for M8 lobby behavior. -->
-        <div class="lobby-panel">
-          <h2>Games</h2>
 
-          <button id="create-game" type="button">Create Game</button>
-
-          <div id="games-list">
-            <p>Loading games...</p>
+        <div class="games-card">
+          <div class="games-header">
+            <h2>Games</h2>
+            <button id="create-game" class="create-btn">Create Game</button>
           </div>
+
+          <div id="games-list" class="games-list">
+            <!-- Games will be rendered here by src/client/lobby.ts -->
+          </div>
+          <!-- ADD TEMPLATE HERE -->
+          <template id="game-template">
+            <div class="game-item">
+              <div class="game-info">
+                <span class="game-title"></span>
+                <span class="game-players"></span>
+              </div>
+              <button class="join-btn">Join</button>
+            </div>
+          </template>
+
+          <template id="empty-template">
+            <p class="empty">No games yet.</p>
+          </template>
+
+          <template id="error-template">
+            <p class="empty">Error loading games</p>
+          </template>
         </div>
       </section>
     </main>

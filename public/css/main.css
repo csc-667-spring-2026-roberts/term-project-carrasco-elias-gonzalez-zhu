@@ -334,3 +334,150 @@ a:hover {
   padding: 0.4rem 0.8rem;
   font-size: 0.85rem;
 }
+
+.enter-btn {
+  margin-left: 10px;
+  padding: 6px 10px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.table {
+  position: relative;
+  width: 400px;
+  height: 300px;
+  margin: 40px auto;
+  border: 2px solid black;
+  border-radius: 12px;
+}
+
+.seat {
+  position: absolute;
+  padding: 8px;
+  background: #eee;
+  border-radius: 6px;
+}
+
+.top {
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.bottom {
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.left {
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.right {
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+
+/* Card container */
+.games-card {
+  background: #f9fafb;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+/* Header row */
+.games-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* Create button */
+.create-btn {
+  background: black;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.create-btn:hover {
+  background: #333;
+}
+
+/* Game list */
+.games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Each game row */
+.game-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #eee;
+  transition: 0.2s;
+}
+
+.game-item:hover {
+  background: #f3f4f6;
+}
+
+/* Game info */
+.game-info {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Join button */
+.enter-btn {
+  background: #111;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.enter-btn:hover {
+  background: #444;
+}
+
+/* Empty state */
+.empty {
+  color: #888;
+}
+
+.player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.avatar-1 { background: #ff6b6b; }
+.avatar-2 { background: #4ecdc4; }
+.avatar-3 { background: #ffe66d; }
+.avatar-you { background: #5f6caf; }

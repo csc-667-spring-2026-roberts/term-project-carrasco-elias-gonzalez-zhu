@@ -1,0 +1,43 @@
+<%- include("partials/head") %>
+<%- include("partials/nav") %>
+
+<div class="container">
+  <h1>
+    Game
+    <%= gameId %>
+  </h1>
+
+  <p>Status: Waiting for players...</p>
+
+  <div class="table">
+    <div class="seat top">
+      <div class="player">
+        <div class="avatar avatar-1"></div>
+        <span>Player 2</span>
+      </div>
+    </div>
+
+    <div class="seat left">
+      <div class="player">
+        <div class="avatar avatar-2"></div>
+        <span>Player 3</span>
+      </div>
+    </div>
+
+    <div class="seat right">
+      <div class="player">
+        <div class="avatar avatar-3"></div>
+        <span>Player 4</span>
+      </div>
+    </div>
+
+    <div class="seat bottom">
+      <div class="player">
+        <div class="avatar avatar-you"></div>
+        <span>You (<%= user.display_name %>)</span>
+      </div>
+    </div>
+  </div>
+
+  <button id="start-btn">Start Game</button>
+</div>
