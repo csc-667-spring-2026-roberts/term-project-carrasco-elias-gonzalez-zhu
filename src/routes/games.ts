@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { createGame, listGames } from "../db/games.js";
+import { broadcastSse } from "./sse.js";
 
 export const gamesRouter = Router();
 
@@ -29,6 +30,13 @@ async function handlePostGames(request: Request, response: Response): Promise<vo
   const userId = request.session.user.id;
   const game = await createGame(userId);
 
+  const games = await listGames();
+
+  broadcastSse({
+    type: "games_updated",
+    games,
+  });
+
   response.status(201).json(game);
 }
 
@@ -40,7 +48,6 @@ gamesRouter.post("/", (request, response, next) => {
   void handlePostGames(request, response).catch(next);
 });
 
-//  render game page
 gamesRouter.get("/:id", (request: Request, response: Response) => {
   if (!request.session.user) {
     response.redirect("/auth/login");

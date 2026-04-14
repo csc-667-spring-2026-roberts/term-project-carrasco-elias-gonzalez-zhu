@@ -14,9 +14,7 @@ import { authRouter } from "./routes/auth.js";
 import { gamesRouter } from "./routes/games.js";
 import homeRoutes from "./routes/home.js";
 import lobbyRoutes from "./routes/lobby.js";
-
-// TODO Marbella:
-// Import the games router here for M8.
+import sseRouter from "./routes/sse.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -71,6 +69,7 @@ app.use(
 app.use("/", homeRoutes);
 app.use("/auth", authRouter);
 app.use("/lobby", lobbyRoutes);
+app.use("/api/sse", sseRouter);
 app.use("/api/games", gamesRouter);
 app.use("/games", gamesRouter);
 

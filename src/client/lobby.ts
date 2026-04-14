@@ -1,40 +1,3 @@
-/**
- * Client Layer: Lobby
- *
- * TODO Breanna:
- * Implement the frontend logic for the lobby page.
- *
- * Responsibilities:
- * - Fetch games from the API (/api/games)
- * - Render the list of games in #games-list
- * - Handle "Create Game" button click
- * - Reload the list after creating a game
- *
- * Guidelines:
- * - Use fetch for API calls
- * - Use the DOM elements already defined in lobby.ejs:
- *   - #games-list
- *   - #create-game
- * - Do NOT modify server routes or DB logic here
- *
- * Notes:
- * - This is temporary for M8 (API-based updates)
- * - Later milestones will replace this with real-time updates
- */
-
-// TODO Breanna:
-// 1. Get references to DOM elements:
-//    - #games-list
-//    - #create-game
-//
-// 2. Fetch games from /api/games
-//
-// 3. Render games into #games-list
-//
-// 4. Add click handler to #create-game button
-//    - Call POST /api/games
-//    - Reload the game list
-
 type Game = {
   id: number;
   player_count: number;
@@ -44,82 +7,138 @@ type GamesResponse = {
   games: Game[];
 };
 
-function main(): void {
-  console.log("Lobby client loaded");
+type SseMessage = {
+  type: string;
+  games?: Game[];
+};
 
-  const gamesList = document.getElementById("games-list") as HTMLElement;
-  const createBtn = document.getElementById("create-game") as HTMLButtonElement;
+function renderGames(gamesList: HTMLElement, games: Game[]): void {
+  gamesList.textContent = "";
 
-  async function loadGames(): Promise<void> {
-    try {
-      const res = await fetch("/api/games");
+  if (games.length === 0) {
+    const emptyTemplate = document.getElementById("empty-template");
 
-      const data = (await res.json()) as GamesResponse;
-
-      const games = data.games;
-
-      gamesList.textContent = "";
-
-      if (games.length === 0) {
-        const emptyTemplate = document.getElementById("empty-template");
-        if (emptyTemplate instanceof HTMLTemplateElement) {
-          const clone = emptyTemplate.content.cloneNode(true);
-          gamesList.appendChild(clone);
-        }
-        return;
-      }
-
-      const template = document.getElementById("game-template");
-      if (!(template instanceof HTMLTemplateElement)) return;
-
-      games.forEach((game: Game) => {
-        const clone = template.content.cloneNode(true) as DocumentFragment;
-
-        const title = clone.querySelector(".game-title");
-        const players = clone.querySelector(".game-players");
-        const btn = clone.querySelector(".join-btn");
-
-        if (!title || !players || !btn) return;
-
-        title.textContent = "Game #" + String(game.id);
-        const count = game.player_count;
-        players.textContent = String(count) + " / 4 players";
-
-        btn.addEventListener("click", () => {
-          window.location.href = "/games/" + String(game.id);
-        });
-
-        gamesList.appendChild(clone);
-      });
-    } catch (err) {
-      console.error("Error loading games:", err);
-
-      const errorTemplate = document.getElementById("error-template");
-      if (errorTemplate instanceof HTMLTemplateElement) {
-        const clone = errorTemplate.content.cloneNode(true);
-        gamesList.appendChild(clone);
-      }
+    if (emptyTemplate instanceof HTMLTemplateElement) {
+      const clone = emptyTemplate.content.cloneNode(true);
+      gamesList.appendChild(clone);
     }
+
+    return;
   }
 
+  const template = document.getElementById("game-template");
+
+  if (!(template instanceof HTMLTemplateElement)) {
+    return;
+  }
+
+  games.forEach((game: Game): void => {
+    const clone = template.content.cloneNode(true) as DocumentFragment;
+
+    const title = clone.querySelector(".game-title");
+    const players = clone.querySelector(".game-players");
+    const btn = clone.querySelector(".join-btn");
+
+    if (!title || !players || !btn) {
+      return;
+    }
+
+    title.textContent = "Game #" + String(game.id);
+    players.textContent = String(game.player_count) + " / 4 players";
+
+    btn.addEventListener("click", (): void => {
+      window.location.href = "/games/" + String(game.id);
+    });
+
+    gamesList.appendChild(clone);
+  });
+}
+
+async function loadGames(gamesList: HTMLElement): Promise<void> {
+  try {
+    const response = await fetch("/api/games");
+
+    if (!response.ok) {
+      throw new Error("Failed to load games.");
+    }
+
+    const data = (await response.json()) as GamesResponse;
+    renderGames(gamesList, data.games);
+  } catch (err) {
+    console.error("Error loading games:", err);
+
+    gamesList.textContent = "";
+
+    const errorTemplate = document.getElementById("error-template");
+    if (errorTemplate instanceof HTMLTemplateElement) {
+      const clone = errorTemplate.content.cloneNode(true);
+      gamesList.appendChild(clone);
+    }
+  }
+}
+
+function setupSse(gamesList: HTMLElement): void {
+  const source = new EventSource("/api/sse");
+
+  source.onopen = (): void => {
+    console.log("SSE connected");
+  };
+
+  source.onmessage = (event: MessageEvent<string>): void => {
+    try {
+      const data = JSON.parse(event.data) as SseMessage;
+
+      if (data.type === "games_updated" && data.games) {
+        renderGames(gamesList, data.games);
+      }
+    } catch (err) {
+      console.error("Error parsing SSE message:", err);
+    }
+  };
+
+  source.onerror = (): void => {
+    console.error("SSE connection error");
+  };
+}
+
+function setupCreateGameButton(createBtn: HTMLButtonElement): void {
   createBtn.addEventListener("click", (): void => {
     void (async (): Promise<void> => {
       try {
-        const res = await fetch("/api/games", { method: "POST" });
+        const response = await fetch("/api/games", { method: "POST" });
 
-        if (!res.ok) {
+        if (!response.ok) {
           console.error("Failed to create game");
-          return;
         }
-
-        await loadGames();
       } catch (err) {
         console.error("Error creating game:", err);
       }
     })();
   });
+}
 
-  void loadGames();
+function main(): void {
+  console.log("Lobby client loaded");
+
+  const gamesListElement = document.getElementById("games-list");
+  const createBtnElement = document.getElementById("create-game");
+
+  if (!(gamesListElement instanceof HTMLElement)) {
+    console.error("Missing #games-list element.");
+    return;
+  }
+
+  if (!(createBtnElement instanceof HTMLButtonElement)) {
+    console.error("Missing #create-game element.");
+    return;
+  }
+
+  const gamesList: HTMLElement = gamesListElement;
+  const createBtn: HTMLButtonElement = createBtnElement;
+
+  setupSse(gamesList);
+  setupCreateGameButton(createBtn);
+  void loadGames(gamesList);
 }
 
 main();
