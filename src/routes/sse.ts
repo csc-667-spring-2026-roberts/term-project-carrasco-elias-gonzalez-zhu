@@ -37,8 +37,13 @@ sseRouter.get("/", requireAuth, (request: Request, response: Response) => {
     response,
   });
 
+  console.log(`SSE client ${String(clientId)} connected. Active clients: ${String(clients.size)}`);
+
   request.on("close", () => {
     clients.delete(clientId);
+    console.log(
+      `SSE client ${String(clientId)} disconnected. Active clients: ${String(clients.size)}`,
+    );
   });
 });
 

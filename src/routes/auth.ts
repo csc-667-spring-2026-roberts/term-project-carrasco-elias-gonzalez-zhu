@@ -7,7 +7,7 @@ import { wantsJson } from "../utils/http.js";
 
 export const authRouter = Router();
 
-const BCRYPT_ROUNDS = 10;
+const BCRYPT_ROUNDS = Number(process.env.BCRYPT_ROUNDS) || 10;
 
 function toSessionUser(user: Pick<User, "id" | "email" | "display_name">): {
   id: number;
