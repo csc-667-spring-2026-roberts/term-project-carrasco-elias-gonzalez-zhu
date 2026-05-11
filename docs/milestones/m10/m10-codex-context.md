@@ -348,3 +348,167 @@ Verification performed:
 - Confirmed the existing local scripts remained unchanged.
 
 The assistant response showed only the updated `package.json` scripts section, as requested.
+
+## 2026-05-10 - Render Free Performance Diagnostics And Tuning
+
+The user asked to implement minimal M10-safe performance diagnostics and fixes for slow Render behavior. The context was that the deployed Render Free app was very slow after login/navigation, registration/login might be slow because of bcrypt rounds, and normal navigation might be slow because of PostgreSQL-backed session touches and SSE reconnect/session pressure. The user explicitly said not to disable SSE permanently, not to modify unrelated files, not to modify migrations, not to modify database scripts, not to modify `package.json` unless truly necessary, not to add dependencies, and not to print secrets or database URLs.
+
+Branch verification:
+
+- Command run: `git branch --show-current`
+- Result: `m10`
+- Because the current branch was `m10`, work continued.
+
+Files inspected before editing:
+
+- `tsconfig.json`
+- `src/server.ts`
+- `src/routes/auth.ts`
+- `src/routes/sse.ts`
+- `src/middleware/logging.ts`
+
+Required changes from the user:
+
+1. Make bcrypt rounds configurable in `src/routes/auth.ts` using `Number(process.env.BCRYPT_ROUNDS) || 10`, while keeping default `10`.
+2. Add request duration logging in `src/server.ts` with method, URL, status code, and duration in milliseconds, while keeping SSE logs understandable.
+3. Add `disableTouch: true` to the `connect-pg-simple` session store configuration to reduce session-store writes.
+4. Add SSE diagnostics in `src/routes/sse.ts` for client connect/disconnect events and active client count, without disabling SSE or changing broadcast behavior.
+5. Report that Render should add `BCRYPT_ROUNDS=8`.
+
+Changes made:
+
+- Edited `src/routes/auth.ts`.
+- Edited `src/server.ts`.
+- Edited `src/routes/sse.ts`.
+- Did not edit migrations.
+- Did not edit database scripts.
+- Did not edit `package.json`.
+- Did not add dependencies.
+- Did not print or inspect secrets or database URLs.
+
+Auth change:
+
+The hardcoded bcrypt rounds constant:
+
+```ts
+const BCRYPT_ROUNDS = 10;
+```
+
+was replaced with:
+
+```ts
+const BCRYPT_ROUNDS = Number(process.env.BCRYPT_ROUNDS) || 10;
+```
+
+Reasoning:
+
+- Default behavior remains rounds `10` if no env var is set.
+- Render Free can set `BCRYPT_ROUNDS=8` to reduce registration time for the M10 demo.
+- Registration still awaits `bcrypt.hash(passwordRaw, BCRYPT_ROUNDS)` before inserting a user.
+- Login still uses `bcrypt.compare(passwordRaw, row.password_hash)`.
+- Existing user hashes keep their embedded cost factor, so users created with rounds `10` may still compare at cost `10` even after future registrations use rounds `8`.
+
+Request logging change:
+
+- Removed the old `requestLogger` import from `src/server.ts`.
+- Replaced the old one-line request logger middleware with inline duration logging after static middleware and before session middleware.
+- The new logger records:
+  - HTTP method
+  - `request.originalUrl`
+  - final `response.statusCode`
+  - request duration in milliseconds
+  - `closed` suffix when a connection closes before `response.writableEnded`
+
+The new log format is intended to look like:
+
+```text
+GET /lobby 200 42ms
+GET /api/games 200 80ms
+GET /api/sse 200 300000ms closed
+```
+
+Reasoning:
+
+- Normal requests now have enough timing data to distinguish slow route handling from fast responses.
+- Long-lived SSE requests should be less confusing because they only finish when the stream closes and the close case is labeled.
+- The logger stays simple and M10-safe.
+
+Session-store change:
+
+The `connect-pg-simple` session store config in `src/server.ts` now includes:
+
+```ts
+disableTouch: true,
+```
+
+under:
+
+```ts
+store: new PgSessionStore({
+  pgPromise: db,
+  tableName: "session",
+  disableTouch: true,
+}),
+```
+
+Reasoning:
+
+- `connect-pg-simple` can touch/update session expiration on otherwise read-only requests.
+- Render Free normal navigation was suspected to be slow partly because every dynamic request, including `/`, `/lobby`, `/api/games`, and `/api/sse`, passes through PostgreSQL-backed session middleware.
+- `disableTouch: true` reduces session-store writes for unchanged sessions while preserving session reads and actual session set/update behavior.
+- Session table name and general session behavior were not changed.
+
+SSE diagnostics change:
+
+`src/routes/sse.ts` now logs when an SSE client connects:
+
+```ts
+console.log(`SSE client ${String(clientId)} connected. Active clients: ${String(clients.size)}`);
+```
+
+and logs when it disconnects:
+
+```ts
+console.log(`SSE client ${String(clientId)} disconnected. Active clients: ${String(clients.size)}`);
+```
+
+Reasoning:
+
+- The deployed app had logs showing `GET /api/sse`.
+- `/api/sse` intentionally keeps an HTTP connection open.
+- Active client counts help reveal whether EventSource reconnects or multiple open tabs are creating pressure on the single Render Free process.
+- Broadcast behavior stayed the same; `broadcastSse` still serializes the payload as `data: ...\n\n` and writes it to all stored client responses.
+- SSE was not disabled.
+
+Verification performed:
+
+- Command run: `npx tsc --noEmit`
+- Result: passed with exit code `0`.
+- Command run: `npm run lint`
+- Result: passed with exit code `0`.
+
+Additional readback:
+
+- Read back `src/server.ts`.
+- Read back `src/routes/auth.ts`.
+- Read back `src/routes/sse.ts`.
+- Checked `git status --short --untracked-files=all`.
+
+Git status after the interaction showed existing modified files plus the three newly changed source files:
+
+- `src/routes/auth.ts`
+- `src/routes/sse.ts`
+- `src/server.ts`
+
+There were also pre-existing modified files from earlier M10 work, including root config files, M10 memory docs, `package.json`, and `.env.example.render`.
+
+The assistant response summarized the changed files, explained each change, reported that `npx tsc --noEmit` and `npm run lint` passed, reminded the user to add `BCRYPT_ROUNDS=8` in Render for the Free-tier demo, and suggested local verification commands:
+
+```bash
+npx tsc --noEmit
+npm run lint
+npm run build
+npm run dev
+```
+
+`npm run build` and `npm run dev` were suggested but not run during that interaction.
