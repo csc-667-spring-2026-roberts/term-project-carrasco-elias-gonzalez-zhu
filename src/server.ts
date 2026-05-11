@@ -9,7 +9,6 @@ import livereload from "livereload";
 import connectLivereload from "connect-livereload";
 
 import db from "./db/connection.js";
-import { requestLogger } from "./middleware/logging.js";
 import { authRouter } from "./routes/auth.js";
 import { gamesRouter } from "./routes/games.js";
 import homeRoutes from "./routes/home.js";
@@ -35,24 +34,57 @@ app.set("views", path.join(__dirname, "../views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Enable live reload in development (disabled in production)
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-const liveReloadServer = livereload.createServer();
+if (process.env.NODE_ENV !== "production") {
+  // Enable live reload in development (disabled in production)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  const liveReloadServer = livereload.createServer();
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-liveReloadServer.watch([path.join(__dirname, "../public"), path.join(__dirname, "../views")]);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  liveReloadServer.watch([path.join(__dirname, "../public"), path.join(__dirname, "../views")]);
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-app.use(connectLivereload());
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  app.use(connectLivereload());
+}
 
 app.use(express.static(path.join(__dirname, "../public")));
-app.use(requestLogger);
+
+app.use((request, response, next) => {
+  const startedAt = Date.now();
+  let logged = false;
+
+  const logRequest = (event: "finish" | "close"): void => {
+    if (logged) {
+      return;
+    }
+
+    logged = true;
+
+    const durationMs = Date.now() - startedAt;
+    const suffix = event === "close" ? " closed" : "";
+    console.log(
+      `${request.method} ${request.originalUrl} ${String(response.statusCode)} ${String(durationMs)}ms${suffix}`,
+    );
+  };
+
+  response.on("finish", () => {
+    logRequest("finish");
+  });
+
+  response.on("close", () => {
+    if (!response.writableEnded) {
+      logRequest("close");
+    }
+  });
+
+  next();
+});
 
 app.use(
   session({
     store: new PgSessionStore({
       pgPromise: db,
       tableName: "session",
+      disableTouch: true,
     }),
     secret: sessionSecret,
     resave: false,

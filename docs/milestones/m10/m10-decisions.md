@@ -46,6 +46,40 @@ tsc && npm run build:client
 
 Rationale: Render can use one build command and still produce the `public/js/lobby.js` asset needed by the EJS lobby page.
 
+### Production Start Command
+
+Decision: Use `npm start` as the production start command after a successful build.
+
+Current command:
+
+```bash
+npm start
+```
+
+Current script behavior:
+
+```bash
+node dist/server.js
+```
+
+Rationale: `src/server.ts` compiles to `dist/server.js`, `package.json` declares `dist/server.js` as the main entry, and the existing start script runs the compiled server directly.
+
+Implementation note: `npm start` assumes `npm run build` has already produced `dist/server.js`; it does not run database migrations.
+
+### Development-Only Livereload
+
+Decision: Livereload should run only outside production.
+
+Current guard:
+
+```ts
+if (process.env.NODE_ENV !== "production")
+```
+
+Rationale: The app should not start the livereload server or inject livereload middleware in production, including Render deployments.
+
+Implementation note: Render should run with `NODE_ENV=production` so the guard disables livereload during production startup.
+
 ### M10 Minimal Schema
 
 Decision: Use a minimal schema for M10.
@@ -96,6 +130,28 @@ Expected:
 - `PORT` is provided by Render and already read by the app.
 
 Rationale: Secrets and deployment-specific values must not be committed to Git.
+
+### Render Env File Templates
+
+Decision: Track `.env.example.render` with placeholders only and keep `.env.render` ignored/local-only.
+
+Rationale: The team needs a safe template for Render-related variables without risking committed database URLs or session secrets.
+
+Implementation note: Render dashboard variables should use the Render Internal Database URL for the deployed web service. A local `.env.render`, if filled in later, should use the Render External Database URL for intentional local commands against Render Postgres.
+
+### Render Database Script Variants
+
+Decision: Keep the existing local database utility scripts unchanged and add separate `:render` variants for commands that intentionally load `.env.render`.
+
+Current Render variants:
+
+- `db:clear:render`
+- `db:check:empty:render`
+- `db:clear:check:render`
+
+Rationale: Separate names make the target database explicit and preserve the existing local workflow.
+
+Implementation note: The current Render variants intentionally mirror the existing shell/`psql` commands and do not yet include confirmation guards. Treat clear commands as destructive until safer guarded helpers are added.
 
 ## Revisit Triggers
 
