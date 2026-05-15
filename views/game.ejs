@@ -1,43 +1,58 @@
-<%- include("partials/head") %>
-<%- include("partials/nav") %>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include("partials/head") %>
+  </head>
+  <body class="app-shell">
+    <%- include("partials/nav") %>
 
-<div class="container">
-  <h1>
-    Game
-    <%= gameId %>
-  </h1>
+    <main class="game-page" id="game-root" data-game-id="<%= gameId %>">
+      <header class="game-header">
+        <div>
+          <h1>
+            Game
+            <%= gameId %>
+          </h1>
+          <p id="game-status" class="game-status">Loading table...</p>
+        </div>
+        <a class="btn btn-secondary btn-small" href="/">Lobby</a>
+      </header>
 
-  <p>Status: Waiting for players...</p>
+      <section class="hearts-table" aria-label="Hearts table">
+        <div class="table-seat table-seat-top" data-seat="3">
+          <span class="seat-avatar">♣</span>
+          <span class="seat-name">Seat 3</span>
+        </div>
 
-  <div class="table">
-    <div class="seat top">
-      <div class="player">
-        <div class="avatar avatar-1"></div>
-        <span>Player 2</span>
-      </div>
-    </div>
+        <div class="table-seat table-seat-left" data-seat="2">
+          <span class="seat-avatar">♦</span>
+          <span class="seat-name">Seat 2</span>
+        </div>
 
-    <div class="seat left">
-      <div class="player">
-        <div class="avatar avatar-2"></div>
-        <span>Player 3</span>
-      </div>
-    </div>
+        <div class="table-seat table-seat-right" data-seat="4">
+          <span class="seat-avatar">♠</span>
+          <span class="seat-name">Seat 4</span>
+        </div>
 
-    <div class="seat right">
-      <div class="player">
-        <div class="avatar avatar-3"></div>
-        <span>Player 4</span>
-      </div>
-    </div>
+        <div class="table-seat table-seat-bottom" data-seat="1">
+          <span class="seat-avatar">♥</span>
+          <span class="seat-name">Seat 1</span>
+        </div>
 
-    <div class="seat bottom">
-      <div class="player">
-        <div class="avatar avatar-you"></div>
-        <span>You (<%= user.display_name %>)</span>
-      </div>
-    </div>
-  </div>
+        <div class="table-center">
+          <div id="played-cards" class="played-cards"></div>
+        </div>
+      </section>
 
-  <button id="start-btn">Start Game</button>
-</div>
+      <section class="hand-panel">
+        <div class="hand-header">
+          <h2>Your hand</h2>
+          <p id="game-error" class="game-error" role="status"></p>
+        </div>
+        <div id="player-hand" class="player-hand"></div>
+      </section>
+    </main>
+
+    <script src="/js/game.js" defer></script>
+  </body>
+</html>

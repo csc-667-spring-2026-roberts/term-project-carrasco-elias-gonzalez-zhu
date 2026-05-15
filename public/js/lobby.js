@@ -24,9 +24,9 @@
         return;
       }
       title.textContent = "Game #" + String(game.id);
-      players.textContent = String(game.player_count) + " / 4 players";
+      players.textContent = String(game.player_count) + " / " + String(game.max_players) + " players";
       btn.addEventListener("click", () => {
-        window.location.href = "/games/" + String(game.id);
+        void enterGame();
       });
       gamesList.appendChild(clone);
     });
@@ -68,18 +68,22 @@
       console.error("SSE connection error");
     };
   }
+  async function enterGame() {
+    try {
+      const response = await fetch("/api/games", { method: "POST" });
+      if (!response.ok) {
+        console.error("Failed to enter game");
+        return;
+      }
+      const data = await response.json();
+      window.location.href = "/games/" + String(data.game.id);
+    } catch (err) {
+      console.error("Error entering game:", err);
+    }
+  }
   function setupCreateGameButton(createBtn) {
     createBtn.addEventListener("click", () => {
-      void (async () => {
-        try {
-          const response = await fetch("/api/games", { method: "POST" });
-          if (!response.ok) {
-            console.error("Failed to create game");
-          }
-        } catch (err) {
-          console.error("Error creating game:", err);
-        }
-      })();
+      void enterGame();
     });
   }
   function main() {
@@ -102,4 +106,3 @@
   }
   main();
 })();
-//# sourceMappingURL=lobby.js.map
