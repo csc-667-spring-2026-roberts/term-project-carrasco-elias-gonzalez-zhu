@@ -6,8 +6,8 @@ Last updated: 2026-05-10.
 
 ## Current Branch And Git Status
 
-- Current branch verified during the latest Render database-script work: `m10`.
-- Current working tree includes the intentional `src/server.ts` livereload guard change, `.gitignore` environment-rule update, `.env.example.render`, `package.json` Render database script additions, and M10 memory-doc updates.
+- Current branch verified during the latest Render performance-diagnostics work: `m10`.
+- Current working tree includes the intentional `src/server.ts` livereload guard and request-duration logging changes, `src/routes/auth.ts` bcrypt env-config change, `src/routes/sse.ts` SSE diagnostics, `.gitignore` environment-rule update, `.env.example.render`, `package.json` Render database script additions, and M10 memory-doc updates.
 - `.env.render` exists locally and is ignored by `.env.*`.
 - M10 memory files now exist under `docs/milestones/m10/`.
 
@@ -45,6 +45,13 @@ Last updated: 2026-05-10.
   - `db:clear:render`
   - `db:check:empty:render`
   - `db:clear:check:render`
+- `src/routes/auth.ts` now reads bcrypt rounds from `BCRYPT_ROUNDS` with default `10`.
+- `src/server.ts` now logs request method, URL, status code, and duration in milliseconds.
+- `src/server.ts` now configures `connect-pg-simple` with `disableTouch: true` to reduce session-store writes for unchanged sessions.
+- `src/routes/sse.ts` now logs SSE client connect/disconnect events with active client count.
+- Latest source verification:
+  - `npx tsc --noEmit` passed.
+  - `npm run lint` passed.
 - `public/js/lobby.js` and `public/js/lobby.js.map` are tracked in the repository.
 
 ## Current Render Status
@@ -58,6 +65,8 @@ Last updated: 2026-05-10.
   - `SESSION_SECRET=<generated secret>`
   - `NODE_ENV=production`
   - `NPM_CONFIG_PRODUCTION=false`
+- Recommended Render Free demo env var:
+  - `BCRYPT_ROUNDS=8`
 - `PORT` is provided by Render and the app already reads it.
 - `DATABASE_URL` should use the Render Internal Database URL.
 - Secrets should not be committed to Git.
@@ -71,6 +80,8 @@ Last updated: 2026-05-10.
 - `.env.render` is local-only and ignored; if used from a developer machine, it should contain the Render External Database URL, not the internal URL.
 - Render dashboard environment variables should still use the Render Internal Database URL for the deployed web service.
 - Render-specific database utility scripts now exist for intentional local commands against the database configured in `.env.render`; they are not part of the Render deploy command.
+- Render performance diagnostics now include request duration logs and SSE active-client logs.
+- Normal navigation performance should be rechecked after deploying `disableTouch: true` and setting `BCRYPT_ROUNDS=8`.
 
 ## Current Database Status
 
@@ -161,6 +172,7 @@ DATABASE_URL=<Render Internal Database URL>
 SESSION_SECRET=<generated secret>
 NODE_ENV=production
 NPM_CONFIG_PRODUCTION=false
+BCRYPT_ROUNDS=8
 ```
 
 Notes:
@@ -172,6 +184,8 @@ Notes:
 - `.env.render` must remain ignored and should never contain committed real values.
 - Standard local database scripts still load `.env`.
 - Render database utility scripts with the `:render` suffix explicitly load `.env.render`.
+- `BCRYPT_ROUNDS=8` is a Render Free demo tuning value; if unset, the app defaults to `10`.
+- The latest implementation pass ran `npx tsc --noEmit` and `npm run lint`; `npm run build` has not yet been run after the performance-diagnostics changes.
 
 ## Current M10 Database Plan
 
@@ -223,7 +237,10 @@ Notes:
 - Render Postgres migrations may not be applied yet.
 - Render must run `npm ci && npm run build && npm run migrate:up` before `npm start`; otherwise `dist/server.js` may be missing or database schema may be stale.
 - Confirm Render runs with `NODE_ENV=production` so the new livereload guard takes effect.
-- The livereload guard has not yet been verified with `npm run build` in this logging pass.
+- Confirm Render includes `BCRYPT_ROUNDS=8` if the Free-tier demo needs faster registration.
+- The performance-diagnostics changes have not yet been verified with `npm run build` or a deployed Render smoke test in this logging pass.
+- `disableTouch: true` reduces session expiration updates on read-only requests; if session lifetime behavior becomes confusing, revisit session TTL/touch behavior after M10.
+- SSE diagnostics are log-only and do not prevent reconnect churn; if logs show repeated connect/disconnect loops, add a heartbeat or temporary test flag later.
 - `.env.example` is for local development only.
 - `.env.example.render` is a safe placeholder template for local Render-related setup.
 - `.env.render` is local-only and should use the Render External Database URL only when a developer intentionally targets Render from a local machine.
@@ -248,10 +265,16 @@ Notes:
 5. Verify migrations run on Render Postgres.
 6. Verify auth/session works in production.
 7. Verify SSE works in production.
-8. If local Render DB commands are needed, fill `.env.render` locally with the Render External Database URL and a generated secret without committing it.
-9. Use `npm run db:check:empty:render` for Render table counts only after confirming `.env.render` targets the intended Render database.
-10. Treat `npm run db:clear:render` and `npm run db:clear:check:render` as destructive demo-reset commands until safer TypeScript helpers and confirmation guards exist.
-11. Consider replacing shell database utility scripts with guarded TypeScript helpers for cross-platform support and safer Render target checks.
-12. Continue with minimal M10 queue/gameplay implementation after deploy readiness is confirmed.
-13. Append a detailed log entry to `m10-codex-context.md` after each meaningful work session.
-14. Update this state file when branch status, Render status, database status, or immediate next steps change.
+8. Add `BCRYPT_ROUNDS=8` in the Render dashboard for the Free-tier demo.
+9. Run `npm run build` locally after the latest performance-diagnostics changes.
+10. Deploy the performance-diagnostics changes and watch Render logs for request duration lines and SSE client counts.
+11. Compare slow requests:
+   - normal requests such as `GET /`, `GET /lobby`, and `GET /api/games` should finish quickly
+   - `GET /api/sse` should stay open and log on disconnect/close
+12. If local Render DB commands are needed, fill `.env.render` locally with the Render External Database URL and a generated secret without committing it.
+13. Use `npm run db:check:empty:render` for Render table counts only after confirming `.env.render` targets the intended Render database.
+14. Treat `npm run db:clear:render` and `npm run db:clear:check:render` as destructive demo-reset commands until safer TypeScript helpers and confirmation guards exist.
+15. Consider replacing shell database utility scripts with guarded TypeScript helpers for cross-platform support and safer Render target checks.
+16. Continue with minimal M10 queue/gameplay implementation after deploy readiness is confirmed.
+17. Append a detailed log entry to `m10-codex-context.md` after each meaningful work session.
+18. Update this state file when branch status, Render status, database status, or immediate next steps change.

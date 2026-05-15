@@ -153,6 +153,23 @@ Rationale: Separate names make the target database explicit and preserve the exi
 
 Implementation note: The current Render variants intentionally mirror the existing shell/`psql` commands and do not yet include confirmation guards. Treat clear commands as destructive until safer guarded helpers are added.
 
+### Render Free Performance Tuning
+
+Decision: Keep M10 performance fixes minimal and deployment-safe by using env-configurable bcrypt rounds, request-duration logging, reduced session touch writes, and SSE diagnostics.
+
+Current choices:
+
+- `BCRYPT_ROUNDS` defaults to `10`.
+- Render Free demo should use `BCRYPT_ROUNDS=8`.
+- `connect-pg-simple` uses `disableTouch: true`.
+- Request logs include method, URL, status code, and duration in milliseconds.
+- SSE logs include connect/disconnect events and active client count.
+- SSE remains enabled.
+
+Rationale: Render Free can be CPU- and connection-constrained, but M10 still needs authenticated lobby navigation and SSE updates. These changes improve observability and reduce avoidable session-store writes without changing product behavior.
+
+Implementation note: Lower bcrypt rounds are a demo performance tradeoff. Revisit after M10 if the app needs stronger production password hashing or more detailed instrumentation.
+
 ## Revisit Triggers
 
 Revisit these decisions only if:
