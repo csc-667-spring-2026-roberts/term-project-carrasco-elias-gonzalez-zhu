@@ -481,3 +481,230 @@ a:hover {
 .avatar-2 { background: #4ecdc4; }
 .avatar-3 { background: #ffe66d; }
 .avatar-you { background: #5f6caf; }
+
+.game-page {
+  width: min(1100px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 40px;
+}
+
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.game-header h1 {
+  margin: 0 0 6px;
+  font-size: 2rem;
+}
+
+.game-status {
+  min-height: 24px;
+  margin: 0;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.hearts-table {
+  position: relative;
+  min-height: 500px;
+  border: 10px solid #17351f;
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 42%),
+    #1f7a3f;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+.table-seat {
+  position: absolute;
+  min-width: 150px;
+  max-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  color: white;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.table-seat.active-turn {
+  border-color: #facc15;
+  box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.24);
+}
+
+.table-seat.you {
+  background: rgba(17, 24, 39, 0.75);
+}
+
+.table-seat-top {
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.table-seat-left {
+  top: 50%;
+  left: 24px;
+  transform: translateY(-50%);
+}
+
+.table-seat-right {
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%);
+}
+
+.table-seat-bottom {
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.seat-avatar {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  font-weight: 700;
+}
+
+.seat-name {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-center {
+  position: absolute;
+  inset: 34% 25%;
+  display: grid;
+  place-items: center;
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 24px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.played-cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 18px;
+  font-weight: 700;
+}
+
+.hand-panel {
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.hand-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.hand-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.game-error {
+  min-height: 20px;
+  margin: 0;
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
+.player-hand {
+  min-height: 126px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.playing-card {
+  width: 78px;
+  height: 108px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #111827;
+  font-size: 1.35rem;
+  font-weight: 800;
+  box-shadow: 0 10px 16px rgba(15, 23, 42, 0.18);
+}
+
+.hand-card {
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+
+.hand-card:hover:not(:disabled) {
+  transform: translateY(-8px);
+  box-shadow: 0 18px 24px rgba(15, 23, 42, 0.2);
+}
+
+.hand-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.suit-hearts,
+.suit-diamonds {
+  color: #b91c1c;
+}
+
+@media (max-width: 720px) {
+  .game-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hearts-table {
+    min-height: 420px;
+    border-width: 8px;
+    border-radius: 24px;
+  }
+
+  .table-seat {
+    min-width: 128px;
+    max-width: 160px;
+    padding: 8px 10px;
+  }
+
+  .table-center {
+    inset: 32% 18%;
+  }
+
+  .playing-card {
+    width: 64px;
+    height: 92px;
+    font-size: 1.1rem;
+  }
+}

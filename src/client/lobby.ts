@@ -1,10 +1,18 @@
 type Game = {
   id: number;
   player_count: number;
+  max_players: number;
+  status: string;
 };
 
 type GamesResponse = {
   games: Game[];
+};
+
+type EnterGameResponse = {
+  game: {
+    id: number;
+  };
 };
 
 type SseMessage = {
@@ -44,10 +52,10 @@ function renderGames(gamesList: HTMLElement, games: Game[]): void {
     }
 
     title.textContent = "Game #" + String(game.id);
-    players.textContent = String(game.player_count) + " / 4 players";
+    players.textContent = String(game.player_count) + " / " + String(game.max_players) + " players";
 
     btn.addEventListener("click", (): void => {
-      window.location.href = "/games/" + String(game.id);
+      void enterGame();
     });
 
     gamesList.appendChild(clone);
@@ -101,19 +109,25 @@ function setupSse(gamesList: HTMLElement): void {
   };
 }
 
+async function enterGame(): Promise<void> {
+  try {
+    const response = await fetch("/api/games", { method: "POST" });
+
+    if (!response.ok) {
+      console.error("Failed to enter game");
+      return;
+    }
+
+    const data = (await response.json()) as EnterGameResponse;
+    window.location.href = "/games/" + String(data.game.id);
+  } catch (err) {
+    console.error("Error entering game:", err);
+  }
+}
+
 function setupCreateGameButton(createBtn: HTMLButtonElement): void {
   createBtn.addEventListener("click", (): void => {
-    void (async (): Promise<void> => {
-      try {
-        const response = await fetch("/api/games", { method: "POST" });
-
-        if (!response.ok) {
-          console.error("Failed to create game");
-        }
-      } catch (err) {
-        console.error("Error creating game:", err);
-      }
-    })();
+    void enterGame();
   });
 }
 

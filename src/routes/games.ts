@@ -1,8 +1,18 @@
 import { Router, type Request, type Response } from "express";
-import { createGame, listGames } from "../db/games.js";
+import {
+  GameActionError,
+  getGameState,
+  joinOrCreateGame,
+  listGames,
+  playCard,
+} from "../db/games.js";
 import { broadcastSse } from "./sse.js";
 
 export const gamesRouter = Router();
+
+interface PlayCardRequestBody {
+  gameCardId?: unknown;
+}
 
 async function handleGetGames(request: Request, response: Response): Promise<void> {
   if (!request.session.user) {
@@ -28,7 +38,7 @@ async function handlePostGames(request: Request, response: Response): Promise<vo
   }
 
   const userId = request.session.user.id;
-  const game = await createGame(userId);
+  const game = await joinOrCreateGame(userId);
 
   const games = await listGames();
 
@@ -37,7 +47,71 @@ async function handlePostGames(request: Request, response: Response): Promise<vo
     games,
   });
 
-  response.status(201).json(game);
+  broadcastSse({
+    type: "game_updated",
+    gameId: game.id,
+  });
+
+  response.status(201).json({
+    game,
+  });
+}
+
+async function handleGetGameState(request: Request, response: Response): Promise<void> {
+  if (!request.session.user) {
+    response.status(401).json({
+      error: "Not authenticated.",
+    });
+    return;
+  }
+
+  const gameId = Number(request.params.id);
+
+  if (!Number.isInteger(gameId)) {
+    response.status(400).json({
+      error: "Invalid game id.",
+    });
+    return;
+  }
+
+  const state = await getGameState(gameId, request.session.user.id);
+
+  response.status(200).json({
+    state,
+  });
+}
+
+async function handlePostPlayCard(request: Request, response: Response): Promise<void> {
+  if (!request.session.user) {
+    response.status(401).json({
+      error: "Not authenticated.",
+    });
+    return;
+  }
+
+  const gameId = Number(request.params.id);
+  const body = request.body as PlayCardRequestBody;
+  const gameCardId = Number(body.gameCardId);
+
+  if (!Number.isInteger(gameId) || !Number.isInteger(gameCardId)) {
+    response.status(400).json({
+      error: "Invalid card play request.",
+    });
+    return;
+  }
+
+  await playCard(gameId, request.session.user.id, gameCardId);
+
+  const state = await getGameState(gameId, request.session.user.id);
+
+  broadcastSse({
+    type: "game_updated",
+    gameId,
+  });
+
+  response.status(200).json({
+    state,
+  });
 }
 
 gamesRouter.get("/", (request, response, next) => {
@@ -45,7 +119,21 @@ gamesRouter.get("/", (request, response, next) => {
 });
 
 gamesRouter.post("/", (request, response, next) => {
-  void handlePostGames(request, response).catch(next);
+  void handlePostGames(request, response).catch((error: unknown) => {
+    handleGameActionError(error, response, next);
+  });
+});
+
+gamesRouter.get("/:id/state", (request, response, next) => {
+  void handleGetGameState(request, response).catch((error: unknown) => {
+    handleGameActionError(error, response, next);
+  });
+});
+
+gamesRouter.post("/:id/play-card", (request, response, next) => {
+  void handlePostPlayCard(request, response).catch((error: unknown) => {
+    handleGameActionError(error, response, next);
+  });
 });
 
 gamesRouter.get("/:id", (request: Request, response: Response) => {
@@ -63,3 +151,18 @@ gamesRouter.get("/:id", (request: Request, response: Response) => {
     error: null,
   });
 });
+
+function handleGameActionError(
+  error: unknown,
+  response: Response,
+  next: (error: unknown) => void,
+): void {
+  if (error instanceof GameActionError) {
+    response.status(error.statusCode).json({
+      error: error.message,
+    });
+    return;
+  }
+
+  next(error);
+}
