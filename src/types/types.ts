@@ -32,9 +32,13 @@ export interface LoginRequestBody {
 
 export type GameStatus = "waiting" | "in_progress" | "finished";
 
-export type CardLocation = "deck" | "hand" | "played";
+export type GamePhase = "waiting" | "passing" | "playing" | "finished";
+
+export type CardLocation = "deck" | "hand" | "passing" | "trick" | "taken";
 
 export type CardSuit = "clubs" | "diamonds" | "hearts" | "spades";
+
+export type PassDirection = "left" | "right" | "across" | "hold";
 
 export interface Game {
   id: number;
@@ -43,11 +47,21 @@ export interface Game {
   max_players: number;
   started_at: Date | null;
   current_turn_seat: number | null;
+  phase: GamePhase;
+  current_hand_no: number;
+  current_trick_no: number;
+  lead_seat: number | null;
+  hearts_broken: boolean;
+  pass_direction: PassDirection;
+  finished_at: Date | null;
+  last_event: string | null;
+  target_score: number;
 }
 
 export interface GameListItem {
   id: number;
   status: GameStatus;
+  phase: GamePhase;
   created_at: Date;
   max_players: number;
   creator_email: string;
@@ -58,6 +72,9 @@ export interface GamePlayer {
   user_id: number;
   display_name: string;
   seat: number;
+  total_score: number;
+  hand_score: number;
+  has_passed: boolean;
 }
 
 export interface GameCard {
@@ -68,21 +85,38 @@ export interface GameCard {
   label: string;
   location: CardLocation;
   user_id: number | null;
+  owner_seat: number | null;
   played_order: number | null;
   played_at: Date | null;
+  trick_no: number | null;
+  trick_order: number | null;
+  taken_by_seat: number | null;
+  is_playable: boolean;
 }
 
 export interface GameState {
   game: {
     id: number;
     status: GameStatus;
+    phase: GamePhase;
     started_at: Date | null;
     current_turn_seat: number | null;
+    current_hand_no: number;
+    current_trick_no: number;
+    lead_seat: number | null;
+    hearts_broken: boolean;
+    pass_direction: PassDirection;
+    target_score: number;
+    last_event: string | null;
   };
   players: GamePlayer[];
   hand: GameCard[];
   playedCards: GameCard[];
   currentUserId: number;
+  currentUserSeat: number;
   canPlay: boolean;
+  canPass: boolean;
+  hasPassed: boolean;
+  requiredPassCount: number;
   statusText: string;
 }

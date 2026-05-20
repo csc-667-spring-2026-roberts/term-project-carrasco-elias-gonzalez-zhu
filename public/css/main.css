@@ -508,6 +508,13 @@ a:hover {
   font-weight: 600;
 }
 
+.game-event {
+  min-height: 20px;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
 .hearts-table {
   position: relative;
   min-height: 500px;
@@ -635,6 +642,20 @@ a:hover {
   font-weight: 600;
 }
 
+.pass-controls {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.pass-message {
+  flex: 1 1 auto;
+}
+
 .player-hand {
   min-height: 126px;
   display: flex;
@@ -673,6 +694,14 @@ a:hover {
 .hand-card:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+.selected-pass-card {
+  border-color: #facc15;
+  box-shadow:
+    0 0 0 4px rgba(250, 204, 21, 0.3),
+    0 18px 24px rgba(15, 23, 42, 0.2);
+  transform: translateY(-8px);
 }
 
 .suit-hearts,

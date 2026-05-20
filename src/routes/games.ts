@@ -4,6 +4,7 @@ import {
   getGameState,
   joinOrCreateGame,
   listGames,
+  passCards,
   playCard,
 } from "../db/games.js";
 import { broadcastSse } from "./sse.js";
@@ -12,6 +13,10 @@ export const gamesRouter = Router();
 
 interface PlayCardRequestBody {
   gameCardId?: unknown;
+}
+
+interface PassCardsRequestBody {
+  gameCardIds?: unknown;
 }
 
 async function handleGetGames(request: Request, response: Response): Promise<void> {
@@ -114,6 +119,39 @@ async function handlePostPlayCard(request: Request, response: Response): Promise
   });
 }
 
+async function handlePostPassCards(request: Request, response: Response): Promise<void> {
+  if (!request.session.user) {
+    response.status(401).json({
+      error: "Not authenticated.",
+    });
+    return;
+  }
+
+  const gameId = Number(request.params.id);
+  const body = request.body as PassCardsRequestBody;
+  const gameCardIds = parseGameCardIds(body.gameCardIds);
+
+  if (!Number.isInteger(gameId) || gameCardIds === null) {
+    response.status(400).json({
+      error: "Invalid card pass request.",
+    });
+    return;
+  }
+
+  await passCards(gameId, request.session.user.id, gameCardIds);
+
+  const state = await getGameState(gameId, request.session.user.id);
+
+  broadcastSse({
+    type: "game_updated",
+    gameId,
+  });
+
+  response.status(200).json({
+    state,
+  });
+}
+
 gamesRouter.get("/", (request, response, next) => {
   void handleGetGames(request, response).catch(next);
 });
@@ -132,6 +170,12 @@ gamesRouter.get("/:id/state", (request, response, next) => {
 
 gamesRouter.post("/:id/play-card", (request, response, next) => {
   void handlePostPlayCard(request, response).catch((error: unknown) => {
+    handleGameActionError(error, response, next);
+  });
+});
+
+gamesRouter.post("/:id/pass-cards", (request, response, next) => {
+  void handlePostPassCards(request, response).catch((error: unknown) => {
     handleGameActionError(error, response, next);
   });
 });
@@ -165,4 +209,14 @@ function handleGameActionError(
   }
 
   next(error);
+}
+
+function parseGameCardIds(value: unknown): number[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const ids = value.map((item) => Number(item));
+
+  return ids.every((id) => Number.isInteger(id)) ? ids : null;
 }

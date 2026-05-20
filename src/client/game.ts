@@ -1,16 +1,28 @@
 type GameStatus = "waiting" | "in_progress" | "finished";
+type GamePhase = "waiting" | "passing" | "playing" | "finished";
 type CardSuit = "clubs" | "diamonds" | "hearts" | "spades";
+type PassDirection = "left" | "right" | "across" | "hold";
 
 type GameInfo = {
   id: number;
   status: GameStatus;
+  phase: GamePhase;
   current_turn_seat: number | null;
+  current_hand_no: number;
+  current_trick_no: number;
+  hearts_broken: boolean;
+  pass_direction: PassDirection;
+  target_score: number;
+  last_event: string | null;
 };
 
 type Player = {
   user_id: number;
   display_name: string;
   seat: number;
+  total_score: number;
+  hand_score: number;
+  has_passed: boolean;
 };
 
 type GameCard = {
@@ -19,6 +31,8 @@ type GameCard = {
   rank: string;
   label: string;
   user_id: number | null;
+  owner_seat: number | null;
+  is_playable: boolean;
 };
 
 type GameState = {
@@ -27,7 +41,11 @@ type GameState = {
   hand: GameCard[];
   playedCards: GameCard[];
   currentUserId: number;
+  currentUserSeat: number;
   canPlay: boolean;
+  canPass: boolean;
+  hasPassed: boolean;
+  requiredPassCount: number;
   statusText: string;
 };
 
@@ -44,18 +62,20 @@ type SseMessage = {
   gameId?: number;
 };
 
+const selectedPassCardIds = new Set<number>();
+
 const suitSymbols: Record<CardSuit, string> = {
-  clubs: "♣",
-  diamonds: "♦",
-  hearts: "♥",
-  spades: "♠",
+  clubs: "\u2663",
+  diamonds: "\u2666",
+  hearts: "\u2665",
+  spades: "\u2660",
 };
 
 const seatSymbols: Record<number, string> = {
-  1: "♥",
-  2: "♦",
-  3: "♣",
-  4: "♠",
+  1: "\u2665",
+  2: "\u2666",
+  3: "\u2663",
+  4: "\u2660",
 };
 
 function cardText(card: GameCard): string {
@@ -83,6 +103,31 @@ async function loadState(gameId: number): Promise<void> {
     setGameError(await readError(response));
     return;
   }
+
+  const data = (await response.json()) as GameStateResponse;
+  renderState(gameId, data.state);
+}
+
+async function passCards(gameId: number): Promise<void> {
+  setGameError("");
+
+  const response = await fetch("/api/games/" + String(gameId) + "/pass-cards", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      gameCardIds: Array.from(selectedPassCardIds),
+    }),
+  });
+
+  if (!response.ok) {
+    setGameError(await readError(response));
+    await loadState(gameId);
+    return;
+  }
+
+  selectedPassCardIds.clear();
 
   const data = (await response.json()) as GameStateResponse;
   renderState(gameId, data.state);
@@ -133,25 +178,67 @@ function renderHand(gameId: number, state: GameState): void {
   const hand = getRequiredElement("player-hand");
   clearElement(hand);
 
+  if (state.game.phase !== "passing") {
+    selectedPassCardIds.clear();
+  }
+
   if (state.hand.length === 0) {
-    hand.textContent = state.game.status === "waiting" ? "Waiting for cards..." : "No cards left.";
+    hand.textContent = emptyHandText(state);
     return;
   }
 
   state.hand.forEach((card) => {
     const button = document.createElement("button");
-    button.className = "playing-card hand-card suit-" + card.suit;
+    button.className = handCardClass(card, state);
     button.type = "button";
     button.textContent = cardText(card);
     button.title = card.label;
-    button.disabled = !state.canPlay;
+    button.disabled = handCardDisabled(card, state);
 
     button.addEventListener("click", (): void => {
-      void playCard(gameId, card.game_card_id);
+      handleCardClick(gameId, state, card);
     });
 
     hand.appendChild(button);
   });
+}
+
+function renderPassControls(gameId: number, state: GameState): void {
+  const controls = getRequiredElement("pass-controls");
+  clearElement(controls);
+
+  if (state.game.phase !== "passing") {
+    return;
+  }
+
+  const message = document.createElement("span");
+  message.className = "pass-message";
+
+  if (state.hasPassed) {
+    message.textContent = "Passed. Waiting for the table.";
+    controls.appendChild(message);
+    return;
+  }
+
+  message.textContent =
+    "Selected " +
+    String(selectedPassCardIds.size) +
+    "/" +
+    String(state.requiredPassCount) +
+    " to pass " +
+    state.game.pass_direction +
+    ".";
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "btn btn-primary btn-small";
+  button.textContent = "Pass Cards";
+  button.disabled = !state.canPass || selectedPassCardIds.size !== state.requiredPassCount;
+  button.addEventListener("click", (): void => {
+    void passCards(gameId);
+  });
+
+  controls.append(message, button);
 }
 
 function renderPlayedCards(state: GameState): void {
@@ -159,7 +246,7 @@ function renderPlayedCards(state: GameState): void {
   clearElement(playedCards);
 
   if (state.playedCards.length === 0) {
-    playedCards.textContent = "Center";
+    playedCards.textContent = centerText(state);
     return;
   }
 
@@ -187,21 +274,91 @@ function renderPlayers(state: GameState): void {
     seatElement.classList.toggle("you", player?.user_id === state.currentUserId);
 
     if (name) {
-      name.textContent = player ? player.display_name : "Seat " + String(seat);
+      name.textContent = player ? playerLabel(player) : "Seat " + String(seat);
     }
 
     if (avatar) {
-      avatar.textContent = player ? (seatSymbols[seat] ?? "•") : "·";
+      avatar.textContent = player ? (seatSymbols[seat] ?? "*") : ".";
     }
   }
 }
 
 function renderState(gameId: number, state: GameState): void {
   getRequiredElement("game-status").textContent = state.statusText;
+  getRequiredElement("game-event").textContent = state.game.last_event ?? "";
   setGameError("");
   renderPlayers(state);
   renderPlayedCards(state);
   renderHand(gameId, state);
+  renderPassControls(gameId, state);
+}
+
+function centerText(state: GameState): string {
+  if (state.game.status === "waiting") {
+    return "Waiting";
+  }
+
+  if (state.game.phase === "passing") {
+    return "Passing";
+  }
+
+  if (state.game.phase === "finished") {
+    return "Finished";
+  }
+
+  return "Trick " + String(state.game.current_trick_no);
+}
+
+function emptyHandText(state: GameState): string {
+  if (state.game.status === "waiting") {
+    return "Waiting for four players...";
+  }
+
+  if (state.game.phase === "passing" && state.hasPassed) {
+    return "Cards passed.";
+  }
+
+  return "No cards left.";
+}
+
+function handCardClass(card: GameCard, state: GameState): string {
+  const classes = ["playing-card", "hand-card", "suit-" + card.suit];
+
+  if (state.game.phase === "passing" && selectedPassCardIds.has(card.game_card_id)) {
+    classes.push("selected-pass-card");
+  }
+
+  return classes.join(" ");
+}
+
+function handCardDisabled(card: GameCard, state: GameState): boolean {
+  if (state.game.phase === "passing") {
+    return !state.canPass && !selectedPassCardIds.has(card.game_card_id);
+  }
+
+  return !card.is_playable;
+}
+
+function handleCardClick(gameId: number, state: GameState, card: GameCard): void {
+  if (state.game.phase === "passing") {
+    togglePassSelection(gameId, state, card);
+    return;
+  }
+
+  if (card.is_playable) {
+    void playCard(gameId, card.game_card_id);
+  }
+}
+
+function playerLabel(player: Player): string {
+  return (
+    player.display_name +
+    " | " +
+    String(player.total_score) +
+    " total, " +
+    String(player.hand_score) +
+    " hand"
+  );
 }
 
 function setGameError(message: string): void {
@@ -226,6 +383,21 @@ function setupSse(gameId: number): void {
   source.onerror = (): void => {
     console.error("Game SSE connection error");
   };
+}
+
+function togglePassSelection(gameId: number, state: GameState, card: GameCard): void {
+  if (!state.canPass && !selectedPassCardIds.has(card.game_card_id)) {
+    return;
+  }
+
+  if (selectedPassCardIds.has(card.game_card_id)) {
+    selectedPassCardIds.delete(card.game_card_id);
+  } else if (selectedPassCardIds.size < state.requiredPassCount) {
+    selectedPassCardIds.add(card.game_card_id);
+  }
+
+  renderHand(gameId, state);
+  renderPassControls(gameId, state);
 }
 
 function main(): void {
