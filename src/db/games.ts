@@ -20,6 +20,7 @@ import type {
 const REQUIRED_PLAYERS = 4;
 const CARDS_PER_PLAYER = 13;
 const PASS_CARD_COUNT = 3;
+const BOT_ACTION_LIMIT = 600;
 
 type Queryable = Pick<typeof db, "manyOrNone" | "none" | "one" | "oneOrNone">;
 type GameCardRow = Omit<GameCard, "is_playable">;
@@ -44,6 +45,11 @@ interface ScoreRow {
 
 interface SeatRow {
   seat: number;
+}
+
+interface MembershipRow extends SeatRow {
+  is_bot: boolean;
+  disconnected_at: Date | null;
 }
 
 interface UserIdRow {
@@ -76,7 +82,7 @@ export async function createGame(userId: number): Promise<Game> {
 }
 
 export async function joinOrCreateGame(userId: number): Promise<Game> {
-  return db.tx(async (t) => {
+  const game = await db.tx(async (t) => {
     const existingGame = await findExistingActiveGame(t, userId);
 
     if (existingGame) {
@@ -84,7 +90,7 @@ export async function joinOrCreateGame(userId: number): Promise<Game> {
       return findGameById(t, existingGame.id);
     }
 
-    const joinableGame = await findJoinableGame(t);
+    const joinableGame = await findJoinableGame(t, userId);
     const game = joinableGame ?? (await insertGame(t));
     const seat = await nextAvailableSeat(t, game.id, game.max_players);
 
@@ -97,6 +103,10 @@ export async function joinOrCreateGame(userId: number): Promise<Game> {
 
     return findGameById(t, game.id);
   });
+
+  await runBotsForGame(game.id);
+
+  return findGameById(db, game.id);
 }
 
 export async function listGames(): Promise<GameListItem[]> {
@@ -141,7 +151,8 @@ export async function getGameState(gameId: number, userId: number): Promise<Game
   const handRows = await listHandRows(db, gameId, membership.seat);
   const currentTrickRows = await listCurrentTrickRows(db, game);
   const hasPassed = await hasSeatPassed(db, gameId, membership.seat);
-  const hand = markPlayableCards(game, handRows, currentTrickRows, membership.seat);
+  const canControlSeat = !membership.is_bot;
+  const hand = markPlayableCards(game, handRows, currentTrickRows, membership.seat, canControlSeat);
   const playedCards = currentTrickRows.map((card) => ({ ...card, is_playable: false }));
 
   return {
@@ -164,8 +175,9 @@ export async function getGameState(gameId: number, userId: number): Promise<Game
     playedCards,
     currentUserId: userId,
     currentUserSeat: membership.seat,
-    canPlay: game.phase === "playing" && game.current_turn_seat === membership.seat,
-    canPass: canSeatPass(game, hasPassed, handRows.length),
+    canPlay:
+      canControlSeat && game.phase === "playing" && game.current_turn_seat === membership.seat,
+    canPass: canControlSeat && canSeatPass(game, hasPassed, handRows.length),
     hasPassed,
     requiredPassCount: PASS_CARD_COUNT,
     statusText: buildStatusText(game, players, membership.seat, hasPassed),
@@ -183,6 +195,10 @@ export async function passCards(
 
     if (!membership) {
       throw new GameActionError(403, "You are not in this game.");
+    }
+
+    if (membership.is_bot) {
+      throw new GameActionError(409, "A bot has already taken over this seat.");
     }
 
     validatePassRequest(game, gameCardIds);
@@ -204,6 +220,8 @@ export async function passCards(
       await beginPlayPhase(t, game, "All players passed. The two of clubs leads.");
     }
   });
+
+  await runBotsForGame(gameId);
 }
 
 export async function playCard(gameId: number, userId: number, gameCardId: number): Promise<void> {
@@ -213,6 +231,10 @@ export async function playCard(gameId: number, userId: number, gameCardId: numbe
 
     if (!membership) {
       throw new GameActionError(403, "You are not in this game.");
+    }
+
+    if (membership.is_bot) {
+      throw new GameActionError(409, "A bot has already taken over this seat.");
     }
 
     validatePlayTurn(game, membership.seat);
@@ -237,6 +259,55 @@ export async function playCard(gameId: number, userId: number, gameCardId: numbe
     await moveCardToTrick(t, game, card, trickOrder, playedOrder);
     await advanceAfterPlay(t, game, currentTrick, card, membership.seat, trickOrder);
   });
+
+  await runBotsForGame(gameId);
+}
+
+export async function leaveGame(gameId: number, userId: number): Promise<void> {
+  const converted = await convertSeatToBot(gameId, userId, "left the game", false, true);
+
+  if (converted) {
+    await runBotsForGame(gameId);
+  }
+}
+
+export async function markGameUserConnected(gameId: number, userId: number): Promise<void> {
+  await db.none(
+    `
+      UPDATE game_users
+      SET disconnected_at = NULL
+      WHERE game_id = $1
+        AND user_id = $2
+        AND is_bot = FALSE
+    `,
+    [gameId, userId],
+  );
+}
+
+export async function markGameUserDisconnected(gameId: number, userId: number): Promise<void> {
+  await db.none(
+    `
+      UPDATE game_users
+      SET disconnected_at = COALESCE(disconnected_at, CURRENT_TIMESTAMP)
+      WHERE game_id = $1
+        AND user_id = $2
+        AND is_bot = FALSE
+    `,
+    [gameId, userId],
+  );
+}
+
+export async function replaceDisconnectedUserWithBot(
+  gameId: number,
+  userId: number,
+): Promise<boolean> {
+  const converted = await convertSeatToBot(gameId, userId, "was replaced by a bot", true);
+
+  if (converted) {
+    await runBotsForGame(gameId);
+  }
+
+  return converted;
 }
 
 async function addUserToGame(
@@ -430,6 +501,58 @@ async function countGameUsers(database: Queryable, gameId: number): Promise<numb
   return row.count;
 }
 
+async function convertSeatToBot(
+  gameId: number,
+  userId: number,
+  reason: string,
+  requireDisconnected = false,
+  throwIfMissing = false,
+): Promise<boolean> {
+  return db.tx(async (t) => {
+    const game = await findGameForUpdate(t, gameId);
+    const membership = await findUserSeatForUpdate(t, gameId, userId);
+
+    if (!membership) {
+      if (throwIfMissing) {
+        throw new GameActionError(403, "You are not in this game.");
+      }
+
+      return false;
+    }
+
+    if (membership.is_bot || game.status === "finished") {
+      return false;
+    }
+
+    if (requireDisconnected && membership.disconnected_at === null) {
+      return false;
+    }
+
+    await t.none(
+      `
+        UPDATE game_users
+        SET is_bot = TRUE,
+            disconnected_at = COALESCE(disconnected_at, CURRENT_TIMESTAMP),
+            left_at = COALESCE(left_at, CURRENT_TIMESTAMP)
+        WHERE game_id = $1
+          AND user_id = $2
+      `,
+      [gameId, userId],
+    );
+
+    await t.none(
+      `
+        UPDATE games
+        SET last_event = $2
+        WHERE id = $1
+      `,
+      [gameId, `Seat ${String(membership.seat)} ${reason}.`],
+    );
+
+    return true;
+  });
+}
+
 async function dealCards(
   database: Queryable,
   gameId: number,
@@ -480,6 +603,7 @@ async function findExistingActiveGame(database: Queryable, userId: number): Prom
       FROM games g
       INNER JOIN game_users gu ON gu.game_id = g.id
       WHERE gu.user_id = $1
+        AND gu.is_bot = FALSE
         AND g.status IN ('waiting', 'in_progress')
       ORDER BY g.created_at DESC
       LIMIT 1
@@ -551,18 +675,25 @@ async function findHandRowsByIdsForUpdate(
   );
 }
 
-async function findJoinableGame(database: Queryable): Promise<Game | null> {
+async function findJoinableGame(database: Queryable, userId: number): Promise<Game | null> {
   const game = await database.oneOrNone<Game>(
     `
       SELECT ${gameColumns("g")}
       FROM games g
       LEFT JOIN game_users gu ON gu.game_id = g.id
       WHERE g.status = 'waiting'
+        AND NOT EXISTS (
+          SELECT 1
+          FROM game_users existing_gu
+          WHERE existing_gu.game_id = g.id
+            AND existing_gu.user_id = $1
+        )
       GROUP BY g.id
       HAVING COUNT(gu.user_id) < g.max_players
       ORDER BY g.created_at ASC
       LIMIT 1
     `,
+    [userId],
   );
 
   if (!game) {
@@ -633,14 +764,32 @@ async function findUserSeat(
   database: Queryable,
   gameId: number,
   userId: number,
-): Promise<SeatRow | null> {
-  return database.oneOrNone<SeatRow>(
+): Promise<MembershipRow | null> {
+  return database.oneOrNone<MembershipRow>(
     `
-      SELECT seat
+      SELECT seat, is_bot, disconnected_at
       FROM game_users
       WHERE game_id = $1
         AND user_id = $2
         AND seat IS NOT NULL
+    `,
+    [gameId, userId],
+  );
+}
+
+async function findUserSeatForUpdate(
+  database: Queryable,
+  gameId: number,
+  userId: number,
+): Promise<MembershipRow | null> {
+  return database.oneOrNone<MembershipRow>(
+    `
+      SELECT seat, is_bot, disconnected_at
+      FROM game_users
+      WHERE game_id = $1
+        AND user_id = $2
+        AND seat IS NOT NULL
+      FOR UPDATE
     `,
     [gameId, userId],
   );
@@ -863,6 +1012,9 @@ async function listPlayers(database: Queryable, gameId: number): Promise<GamePla
         gu.seat,
         gu.total_score,
         gu.hand_score,
+        gu.is_bot,
+        gu.disconnected_at,
+        gu.left_at,
         EXISTS (
           SELECT 1
           FROM game_cards gc
@@ -898,8 +1050,10 @@ function markPlayableCards(
   hand: GameCardRow[],
   currentTrick: GameCardRow[],
   currentUserSeat: number,
+  canControlSeat: boolean,
 ): GameCard[] {
-  const isUsersTurn = game.phase === "playing" && game.current_turn_seat === currentUserSeat;
+  const isUsersTurn =
+    canControlSeat && game.phase === "playing" && game.current_turn_seat === currentUserSeat;
 
   return hand.map((card) => ({
     ...card,
@@ -951,6 +1105,94 @@ async function maybeStartGame(database: Queryable, gameId: number): Promise<void
   }
 
   await startNewHand(database, game, players, "Game started.");
+}
+
+async function runBotsForGame(gameId: number): Promise<void> {
+  for (let actionCount = 0; actionCount < BOT_ACTION_LIMIT; actionCount += 1) {
+    const acted = await runSingleBotAction(gameId);
+
+    if (!acted) {
+      return;
+    }
+  }
+}
+
+async function runSingleBotAction(gameId: number): Promise<boolean> {
+  return db.tx(async (t) => {
+    const game = await findGameForUpdate(t, gameId);
+
+    if (game.status !== "in_progress") {
+      return false;
+    }
+
+    const players = await listPlayers(t, gameId);
+
+    if (game.phase === "passing") {
+      return runBotPassAction(t, game, players);
+    }
+
+    if (game.phase === "playing") {
+      return runBotPlayAction(t, game, players);
+    }
+
+    return false;
+  });
+}
+
+async function runBotPassAction(
+  database: Queryable,
+  game: Game,
+  players: GamePlayer[],
+): Promise<boolean> {
+  const bot = players.find((player) => player.is_bot && !player.has_passed);
+
+  if (!bot || game.pass_direction === "hold") {
+    return false;
+  }
+
+  const hand = await listHandRowsForUpdate(database, game.id, bot.seat);
+  const gameCardIds = selectBotPassCards(hand);
+
+  if (gameCardIds.length !== PASS_CARD_COUNT) {
+    return false;
+  }
+
+  await markCardsForPassing(database, game, bot.seat, gameCardIds);
+
+  if (await allPlayersPassed(database, game.id)) {
+    await applyPassedCards(database, game.id);
+    await beginPlayPhase(database, game, "All players passed. The two of clubs leads.");
+  }
+
+  return true;
+}
+
+async function runBotPlayAction(
+  database: Queryable,
+  game: Game,
+  players: GamePlayer[],
+): Promise<boolean> {
+  const currentPlayer = players.find((player) => player.seat === game.current_turn_seat);
+
+  if (!currentPlayer?.is_bot) {
+    return false;
+  }
+
+  const hand = await listHandRowsForUpdate(database, game.id, currentPlayer.seat);
+  const currentTrick = await listCurrentTrickRows(database, game);
+  const card = selectBotPlayableCard(game, hand, currentTrick);
+
+  if (!card) {
+    return false;
+  }
+
+  const trickOrder = currentTrick.length + 1;
+  const playedOrder = await nextPlayedOrder(database, game.id);
+
+  await moveCardToTrick(database, game, card, trickOrder, playedOrder);
+  await advanceAfterPlay(database, game, currentTrick, card, currentPlayer.seat, trickOrder);
+
+  return true;
 }
 
 async function moveCardToTrick(
@@ -1097,6 +1339,48 @@ function rankValue(card: GameCardRow): number {
   };
 
   return values[card.rank] ?? 0;
+}
+
+function selectBotPassCards(hand: GameCardRow[]): number[] {
+  return [...hand]
+    .sort((left, right) => botPassScore(right) - botPassScore(left))
+    .slice(0, PASS_CARD_COUNT)
+    .map((card) => card.game_card_id);
+}
+
+function selectBotPlayableCard(
+  game: Game,
+  hand: GameCardRow[],
+  currentTrick: GameCardRow[],
+): GameCardRow | null {
+  const playableCards = hand.filter(
+    (card) => findPlayViolation(game, hand, currentTrick, card) === null,
+  );
+
+  return (
+    playableCards
+      .sort(
+        (left, right) =>
+          botPlayScore(left) - botPlayScore(right) || rankValue(left) - rankValue(right),
+      )
+      .at(0) ?? null
+  );
+}
+
+function botPassScore(card: GameCardRow): number {
+  if (isQueenOfSpades(card)) {
+    return 100;
+  }
+
+  if (card.suit === "hearts") {
+    return 40 + rankValue(card);
+  }
+
+  return rankValue(card);
+}
+
+function botPlayScore(card: GameCardRow): number {
+  return cardPoints(card) * 20 + rankValue(card);
 }
 
 async function resetCardsForNewHand(database: Queryable, gameId: number): Promise<void> {

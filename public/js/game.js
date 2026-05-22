@@ -36,6 +36,18 @@
     const data = await response.json();
     renderState(gameId, data.state);
   }
+  async function leaveGame(gameId) {
+    setGameError("");
+    const response = await fetch("/api/games/" + String(gameId) + "/leave", {
+      method: "POST"
+    });
+    if (!response.ok) {
+      setGameError(await readError(response));
+      await loadState(gameId);
+      return;
+    }
+    window.location.href = "/lobby";
+  }
   async function passCards(gameId) {
     setGameError("");
     const response = await fetch("/api/games/" + String(gameId) + "/pass-cards", {
@@ -162,6 +174,8 @@
       const isCurrentTurn = state.game.current_turn_seat === seat;
       seatElement.classList.toggle("active-turn", isCurrentTurn);
       seatElement.classList.toggle("you", player?.user_id === state.currentUserId);
+      seatElement.classList.toggle("bot", player?.is_bot === true);
+      seatElement.classList.toggle("disconnected", player?.disconnected_at !== null);
       if (name) {
         name.textContent = player ? playerLabel(player) : "Seat " + String(seat);
       }
@@ -223,13 +237,15 @@
     }
   }
   function playerLabel(player) {
-    return player.display_name + " | " + String(player.total_score) + " total, " + String(player.hand_score) + " hand";
+    const botLabel = player.is_bot ? " Bot" : "";
+    const disconnectedLabel = player.disconnected_at && !player.is_bot ? " Offline" : "";
+    return player.display_name + botLabel + disconnectedLabel + " | " + String(player.total_score) + " total, " + String(player.hand_score) + " hand";
   }
   function setGameError(message) {
     getRequiredElement("game-error").textContent = message;
   }
   function setupSse(gameId) {
-    const source = new EventSource("/api/sse");
+    const source = new EventSource("/api/sse?gameId=" + String(gameId));
     source.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -243,6 +259,15 @@
     source.onerror = () => {
       console.error("Game SSE connection error");
     };
+  }
+  function setupLeaveButton(gameId) {
+    const button = getRequiredElement("leave-game");
+    if (!(button instanceof HTMLButtonElement)) {
+      throw new Error("Missing #leave-game button.");
+    }
+    button.addEventListener("click", () => {
+      void leaveGame(gameId);
+    });
   }
   function togglePassSelection(gameId, state, card) {
     if (!state.canPass && !selectedPassCardIds.has(card.game_card_id)) {
@@ -264,6 +289,7 @@
       return;
     }
     setupSse(gameId);
+    setupLeaveButton(gameId);
     void loadState(gameId);
   }
   main();

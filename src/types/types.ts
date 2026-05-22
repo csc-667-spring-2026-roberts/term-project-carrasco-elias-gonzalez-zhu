@@ -75,6 +75,9 @@ export interface GamePlayer {
   total_score: number;
   hand_score: number;
   has_passed: boolean;
+  is_bot: boolean;
+  disconnected_at: Date | null;
+  left_at: Date | null;
 }
 
 export interface GameCard {

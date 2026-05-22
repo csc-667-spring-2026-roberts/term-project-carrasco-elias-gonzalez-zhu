@@ -23,6 +23,9 @@ type Player = {
   total_score: number;
   hand_score: number;
   has_passed: boolean;
+  is_bot: boolean;
+  disconnected_at: string | null;
+  left_at: string | null;
 };
 
 type GameCard = {
@@ -106,6 +109,22 @@ async function loadState(gameId: number): Promise<void> {
 
   const data = (await response.json()) as GameStateResponse;
   renderState(gameId, data.state);
+}
+
+async function leaveGame(gameId: number): Promise<void> {
+  setGameError("");
+
+  const response = await fetch("/api/games/" + String(gameId) + "/leave", {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    setGameError(await readError(response));
+    await loadState(gameId);
+    return;
+  }
+
+  window.location.href = "/lobby";
 }
 
 async function passCards(gameId: number): Promise<void> {
@@ -272,6 +291,8 @@ function renderPlayers(state: GameState): void {
 
     seatElement.classList.toggle("active-turn", isCurrentTurn);
     seatElement.classList.toggle("you", player?.user_id === state.currentUserId);
+    seatElement.classList.toggle("bot", player?.is_bot === true);
+    seatElement.classList.toggle("disconnected", player?.disconnected_at !== null);
 
     if (name) {
       name.textContent = player ? playerLabel(player) : "Seat " + String(seat);
@@ -351,8 +372,13 @@ function handleCardClick(gameId: number, state: GameState, card: GameCard): void
 }
 
 function playerLabel(player: Player): string {
+  const botLabel = player.is_bot ? " Bot" : "";
+  const disconnectedLabel = player.disconnected_at && !player.is_bot ? " Offline" : "";
+
   return (
     player.display_name +
+    botLabel +
+    disconnectedLabel +
     " | " +
     String(player.total_score) +
     " total, " +
@@ -366,7 +392,7 @@ function setGameError(message: string): void {
 }
 
 function setupSse(gameId: number): void {
-  const source = new EventSource("/api/sse");
+  const source = new EventSource("/api/sse?gameId=" + String(gameId));
 
   source.onmessage = (event: MessageEvent<string>): void => {
     try {
@@ -383,6 +409,18 @@ function setupSse(gameId: number): void {
   source.onerror = (): void => {
     console.error("Game SSE connection error");
   };
+}
+
+function setupLeaveButton(gameId: number): void {
+  const button = getRequiredElement("leave-game");
+
+  if (!(button instanceof HTMLButtonElement)) {
+    throw new Error("Missing #leave-game button.");
+  }
+
+  button.addEventListener("click", (): void => {
+    void leaveGame(gameId);
+  });
 }
 
 function togglePassSelection(gameId: number, state: GameState, card: GameCard): void {
@@ -410,6 +448,7 @@ function main(): void {
   }
 
   setupSse(gameId);
+  setupLeaveButton(gameId);
   void loadState(gameId);
 }
 

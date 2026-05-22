@@ -508,6 +508,12 @@ a:hover {
   font-weight: 600;
 }
 
+.game-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .game-event {
   min-height: 20px;
   margin: 4px 0 0;
@@ -548,6 +554,14 @@ a:hover {
 
 .table-seat.you {
   background: rgba(17, 24, 39, 0.75);
+}
+
+.table-seat.bot {
+  border-style: dashed;
+}
+
+.table-seat.disconnected {
+  opacity: 0.72;
 }
 
 .table-seat-top {

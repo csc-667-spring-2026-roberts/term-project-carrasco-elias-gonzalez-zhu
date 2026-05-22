@@ -3,6 +3,7 @@ import {
   GameActionError,
   getGameState,
   joinOrCreateGame,
+  leaveGame,
   listGames,
   passCards,
   playCard,
@@ -152,6 +153,42 @@ async function handlePostPassCards(request: Request, response: Response): Promis
   });
 }
 
+async function handlePostLeaveGame(request: Request, response: Response): Promise<void> {
+  if (!request.session.user) {
+    response.status(401).json({
+      error: "Not authenticated.",
+    });
+    return;
+  }
+
+  const gameId = Number(request.params.id);
+
+  if (!Number.isInteger(gameId)) {
+    response.status(400).json({
+      error: "Invalid game id.",
+    });
+    return;
+  }
+
+  await leaveGame(gameId, request.session.user.id);
+
+  const games = await listGames();
+
+  broadcastSse({
+    type: "game_updated",
+    gameId,
+  });
+
+  broadcastSse({
+    type: "games_updated",
+    games,
+  });
+
+  response.status(200).json({
+    message: "Seat converted to bot.",
+  });
+}
+
 gamesRouter.get("/", (request, response, next) => {
   void handleGetGames(request, response).catch(next);
 });
@@ -176,6 +213,12 @@ gamesRouter.post("/:id/play-card", (request, response, next) => {
 
 gamesRouter.post("/:id/pass-cards", (request, response, next) => {
   void handlePostPassCards(request, response).catch((error: unknown) => {
+    handleGameActionError(error, response, next);
+  });
+});
+
+gamesRouter.post("/:id/leave", (request, response, next) => {
+  void handlePostLeaveGame(request, response).catch((error: unknown) => {
     handleGameActionError(error, response, next);
   });
 });
