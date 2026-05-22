@@ -12,6 +12,7 @@ Update M10 agent-memory files based on the **previous interaction (the last user
 Do NOT include this instruction in the log.
 
 Files to update:
+
 - docs/milestones/m10/m10-codex-context.md (append only)
 - docs/milestones/m10/m10-state.md (update snapshot)
 - docs/milestones/m10/m10-decisions.md (only if new decisions were made)
@@ -19,6 +20,7 @@ Files to update:
 ---
 
 1. Update m10-codex-context.md
+
 - Append a new Context Log Entry
 - Capture FULL context of the previous interaction
 - Include:
@@ -31,6 +33,7 @@ Files to update:
 ---
 
 2. Update m10-state.md
+
 - Reflect the CURRENT project state AFTER the previous interaction
 - Keep it structured and concise
 - Update:
@@ -43,12 +46,14 @@ Files to update:
 ---
 
 3. Update m10-decisions.md (if applicable)
+
 - Add ONLY new durable decisions from the previous interaction
 - Do NOT duplicate existing ones
 
 ---
 
 Rules:
+
 - Only log the previous interaction (not this prompt)
 - Do NOT rewrite previous history
 - Only append to context log
@@ -58,5 +63,6 @@ Rules:
 ---
 
 Output:
+
 - Show changes for each file
 - Clearly label sections per file

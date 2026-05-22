@@ -269,8 +269,10 @@ Notes:
 9. Run `npm run build` locally after the latest performance-diagnostics changes.
 10. Deploy the performance-diagnostics changes and watch Render logs for request duration lines and SSE client counts.
 11. Compare slow requests:
-   - normal requests such as `GET /`, `GET /lobby`, and `GET /api/games` should finish quickly
-   - `GET /api/sse` should stay open and log on disconnect/close
+
+- normal requests such as `GET /`, `GET /lobby`, and `GET /api/games` should finish quickly
+- `GET /api/sse` should stay open and log on disconnect/close
+
 12. If local Render DB commands are needed, fill `.env.render` locally with the Render External Database URL and a generated secret without committing it.
 13. Use `npm run db:check:empty:render` for Render table counts only after confirming `.env.render` targets the intended Render database.
 14. Treat `npm run db:clear:render` and `npm run db:clear:check:render` as destructive demo-reset commands until safer TypeScript helpers and confirmation guards exist.
