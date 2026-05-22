@@ -11,6 +11,8 @@ import type {
   CardSuit,
   Game,
   GameCard,
+  GameEvent,
+  GameEventType,
   GameListItem,
   GamePlayer,
   GameState,
@@ -21,6 +23,7 @@ const REQUIRED_PLAYERS = 4;
 const CARDS_PER_PLAYER = 13;
 const PASS_CARD_COUNT = 3;
 const BOT_ACTION_LIMIT = 600;
+const MOVE_LOG_LIMIT = 20;
 
 type Queryable = Pick<typeof db, "manyOrNone" | "none" | "one" | "oneOrNone">;
 type GameCardRow = Omit<GameCard, "is_playable">;
@@ -83,6 +86,12 @@ export async function createGame(userId: number): Promise<Game> {
 
 export async function joinOrCreateGame(userId: number): Promise<Game> {
   const game = await db.tx(async (t) => {
+    const reclaimedGame = await reclaimBotSeat(t, userId);
+
+    if (reclaimedGame) {
+      return reclaimedGame;
+    }
+
     const existingGame = await findExistingActiveGame(t, userId);
 
     if (existingGame) {
@@ -150,6 +159,7 @@ export async function getGameState(gameId: number, userId: number): Promise<Game
   const players = await listPlayers(db, gameId);
   const handRows = await listHandRows(db, gameId, membership.seat);
   const currentTrickRows = await listCurrentTrickRows(db, game);
+  const moveLog = await listRecentGameEvents(db, gameId);
   const hasPassed = await hasSeatPassed(db, gameId, membership.seat);
   const canControlSeat = !membership.is_bot;
   const hand = markPlayableCards(game, handRows, currentTrickRows, membership.seat, canControlSeat);
@@ -173,6 +183,7 @@ export async function getGameState(gameId: number, userId: number): Promise<Game
     players,
     hand,
     playedCards,
+    moveLog,
     currentUserId: userId,
     currentUserSeat: membership.seat,
     canPlay:
@@ -214,6 +225,17 @@ export async function passCards(
     }
 
     await markCardsForPassing(t, game, membership.seat, gameCardIds);
+    const players = await listPlayers(t, gameId);
+    await logGameEvent(
+      t,
+      game,
+      "pass",
+      `${playerLogNameBySeat(players, membership.seat)} passed ${String(PASS_CARD_COUNT)} cards ${passDirectionLabel(
+        game.pass_direction,
+      )}.`,
+      membership.seat,
+      userId,
+    );
 
     if (await allPlayersPassed(t, game.id)) {
       await applyPassedCards(t, game.id);
@@ -257,6 +279,7 @@ export async function playCard(gameId: number, userId: number, gameCardId: numbe
     const playedOrder = await nextPlayedOrder(t, gameId);
 
     await moveCardToTrick(t, game, card, trickOrder, playedOrder);
+    await logCardPlayed(t, game, membership.seat, userId, card);
     await advanceAfterPlay(t, game, currentTrick, card, membership.seat, trickOrder);
   });
 
@@ -423,6 +446,8 @@ async function beginPlayPhase(database: Queryable, game: Game, lastEvent: string
     `,
     [game.id, firstSeat, lastEvent],
   );
+
+  await logGameEvent(database, game, "system", lastEvent, firstSeat);
 }
 
 function buildStatusText(
@@ -479,6 +504,8 @@ async function completeHand(database: Queryable, game: Game, trickMessage: strin
   const scoreMessage = await applyScores(database, game.id);
   const players = await listPlayers(database, game.id);
 
+  await logGameEvent(database, game, "score", scoreMessage);
+
   if (players.some((player) => player.total_score >= game.target_score)) {
     await finishGame(database, game.id, `${trickMessage} ${scoreMessage} ${winnerText(players)}`);
     return;
@@ -528,6 +555,9 @@ async function convertSeatToBot(
       return false;
     }
 
+    const players = await listPlayers(t, gameId);
+    const message = `${playerNameBySeat(players, membership.seat)} ${reason}.`;
+
     await t.none(
       `
         UPDATE game_users
@@ -546,7 +576,16 @@ async function convertSeatToBot(
         SET last_event = $2
         WHERE id = $1
       `,
-      [gameId, `Seat ${String(membership.seat)} ${reason}.`],
+      [gameId, message],
+    );
+
+    await logGameEvent(
+      t,
+      game,
+      "leave",
+      `${message} Bot took over seat ${String(membership.seat)}.`,
+      membership.seat,
+      userId,
     );
 
     return true;
@@ -843,6 +882,8 @@ function findLeadViolation(game: Game, hand: GameCardRow[], card: GameCardRow): 
 }
 
 async function finishGame(database: Queryable, gameId: number, lastEvent: string): Promise<void> {
+  const game = await findGameById(database, gameId);
+
   await database.none(
     `
       UPDATE games
@@ -856,6 +897,8 @@ async function finishGame(database: Queryable, gameId: number, lastEvent: string
     `,
     [gameId, lastEvent],
   );
+
+  await logGameEvent(database, game, "system", lastEvent);
 }
 
 function gameCardSelectSql(): string {
@@ -1003,6 +1046,41 @@ async function listHandRowsForUpdate(
   );
 }
 
+async function listRecentGameEvents(database: Queryable, gameId: number): Promise<GameEvent[]> {
+  return database.manyOrNone<GameEvent>(
+    `
+      SELECT
+        id,
+        game_id,
+        hand_no,
+        trick_no,
+        actor_seat,
+        actor_user_id,
+        event_type,
+        message,
+        created_at
+      FROM (
+        SELECT
+          id,
+          game_id,
+          hand_no,
+          trick_no,
+          actor_seat,
+          actor_user_id,
+          event_type,
+          message,
+          created_at
+        FROM game_events
+        WHERE game_id = $1
+        ORDER BY id DESC
+        LIMIT $2
+      ) recent
+      ORDER BY id ASC
+    `,
+    [gameId, MOVE_LOG_LIMIT],
+  );
+}
+
 async function listPlayers(database: Queryable, gameId: number): Promise<GamePlayer[]> {
   return database.manyOrNone<GamePlayer>(
     `
@@ -1091,6 +1169,121 @@ async function markCardsForPassing(
   );
 }
 
+async function reclaimBotSeat(database: Queryable, userId: number): Promise<Game | null> {
+  const row = await database.oneOrNone<SeatRow & { game_id: number }>(
+    `
+      SELECT gu.game_id, gu.seat
+      FROM game_users gu
+      INNER JOIN games g ON g.id = gu.game_id
+      WHERE gu.user_id = $1
+        AND gu.is_bot = TRUE
+        AND g.status IN ('waiting', 'in_progress')
+      ORDER BY gu.left_at DESC NULLS LAST, g.created_at DESC
+      LIMIT 1
+    `,
+    [userId],
+  );
+
+  if (!row) {
+    return null;
+  }
+
+  const game = await findGameForUpdate(database, row.game_id);
+
+  if (game.status === "finished") {
+    return null;
+  }
+
+  const membership = await findUserSeatForUpdate(database, row.game_id, userId);
+
+  if (!membership?.is_bot) {
+    return null;
+  }
+
+  await database.none(
+    `
+      UPDATE game_users
+      SET is_bot = FALSE,
+          disconnected_at = NULL,
+          left_at = NULL
+      WHERE game_id = $1
+        AND user_id = $2
+    `,
+    [row.game_id, userId],
+  );
+
+  const players = await listPlayers(database, row.game_id);
+  const message = `${playerNameBySeat(players, membership.seat)} rejoined seat ${String(
+    membership.seat,
+  )}.`;
+
+  await database.none(
+    `
+      UPDATE games
+      SET last_event = $2
+      WHERE id = $1
+    `,
+    [row.game_id, message],
+  );
+
+  await logGameEvent(database, game, "system", message, membership.seat, userId);
+
+  return findGameById(database, row.game_id);
+}
+
+async function logCardPlayed(
+  database: Queryable,
+  game: Game,
+  seat: number,
+  userId: number,
+  card: GameCardRow,
+  players?: GamePlayer[],
+): Promise<void> {
+  const tablePlayers = players ?? (await listPlayers(database, game.id));
+
+  await logGameEvent(
+    database,
+    game,
+    "play",
+    `${playerLogNameBySeat(tablePlayers, seat)} played ${card.label}.`,
+    seat,
+    userId,
+  );
+}
+
+async function logGameEvent(
+  database: Queryable,
+  game: Game,
+  eventType: GameEventType,
+  message: string,
+  actorSeat: number | null = null,
+  actorUserId: number | null = null,
+): Promise<void> {
+  await database.none(
+    `
+      INSERT INTO game_events (
+        game_id,
+        hand_no,
+        trick_no,
+        actor_seat,
+        actor_user_id,
+        event_type,
+        message
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `,
+    [
+      game.id,
+      game.current_hand_no,
+      game.current_trick_no > 0 ? game.current_trick_no : null,
+      actorSeat,
+      actorUserId,
+      eventType,
+      message,
+    ],
+  );
+}
+
 async function maybeStartGame(database: Queryable, gameId: number): Promise<void> {
   const game = await findGameForUpdate(database, gameId);
 
@@ -1158,6 +1351,16 @@ async function runBotPassAction(
   }
 
   await markCardsForPassing(database, game, bot.seat, gameCardIds);
+  await logGameEvent(
+    database,
+    game,
+    "pass",
+    `${playerLogNameBySeat(players, bot.seat)} passed ${String(PASS_CARD_COUNT)} cards ${passDirectionLabel(
+      game.pass_direction,
+    )}.`,
+    bot.seat,
+    bot.user_id,
+  );
 
   if (await allPlayersPassed(database, game.id)) {
     await applyPassedCards(database, game.id);
@@ -1190,6 +1393,7 @@ async function runBotPlayAction(
   const playedOrder = await nextPlayedOrder(database, game.id);
 
   await moveCardToTrick(database, game, card, trickOrder, playedOrder);
+  await logCardPlayed(database, game, currentPlayer.seat, currentPlayer.user_id, card, players);
   await advanceAfterPlay(database, game, currentTrick, card, currentPlayer.seat, trickOrder);
 
   return true;
@@ -1321,6 +1525,16 @@ function playerNameBySeat(players: GamePlayer[], seat: number): string {
   return players.find((player) => player.seat === seat)?.display_name ?? `Seat ${String(seat)}`;
 }
 
+function playerLogNameBySeat(players: GamePlayer[], seat: number): string {
+  const player = players.find((candidate) => candidate.seat === seat);
+
+  if (!player) {
+    return `Seat ${String(seat)}`;
+  }
+
+  return player.is_bot ? `${player.display_name} Bot` : player.display_name;
+}
+
 function rankValue(card: GameCardRow): number {
   const values: Record<string, number> = {
     "2": 2,
@@ -1445,9 +1659,11 @@ async function resolveTrickOutcome(
   heartsBroken: boolean,
 ): Promise<void> {
   const players = await listPlayers(database, game.id);
-  const winnerName = playerNameBySeat(players, winnerSeat);
+  const winnerName = playerLogNameBySeat(players, winnerSeat);
   const message = `${winnerName} took trick ${String(game.current_trick_no)} for ${String(points)} points.`;
   const handFinished = await isCurrentHandFinished(database, game.id);
+
+  await logGameEvent(database, game, "trick", message, winnerSeat);
 
   if (handFinished) {
     await completeHand(database, game, message);
@@ -1524,6 +1740,8 @@ async function startNewHand(
     return;
   }
 
+  const lastEvent = `${previousEvent} New hand dealt.`;
+
   await database.none(
     `
       UPDATE games
@@ -1539,7 +1757,16 @@ async function startNewHand(
           last_event = $4
       WHERE id = $1
     `,
-    [game.id, handNo, passDirection, `${previousEvent} New hand dealt.`],
+    [game.id, handNo, passDirection, lastEvent],
+  );
+
+  await logGameEvent(
+    database,
+    { ...game, current_hand_no: handNo, current_trick_no: 0 },
+    "system",
+    `Hand ${String(handNo)} dealt. Pass ${String(PASS_CARD_COUNT)} cards ${passDirectionLabel(
+      passDirection,
+    )}.`,
   );
 }
 

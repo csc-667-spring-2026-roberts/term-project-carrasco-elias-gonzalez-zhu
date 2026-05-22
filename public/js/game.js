@@ -184,12 +184,37 @@
       }
     }
   }
+  function renderMoveLog(state) {
+    const log = getRequiredElement("move-log");
+    clearElement(log);
+    if (state.moveLog.length === 0) {
+      const emptyItem = document.createElement("li");
+      emptyItem.className = "move-log-empty";
+      emptyItem.textContent = "No moves yet.";
+      log.appendChild(emptyItem);
+      return;
+    }
+    state.moveLog.forEach((event) => {
+      const item = document.createElement("li");
+      item.className = "move-log-item move-log-" + event.event_type;
+      const time = document.createElement("span");
+      time.className = "move-log-time";
+      time.textContent = eventTime(event.created_at);
+      const message = document.createElement("span");
+      message.className = "move-log-message";
+      message.textContent = event.message;
+      item.append(time, message);
+      log.appendChild(item);
+    });
+    log.scrollTop = log.scrollHeight;
+  }
   function renderState(gameId, state) {
     getRequiredElement("game-status").textContent = state.statusText;
     getRequiredElement("game-event").textContent = state.game.last_event ?? "";
     setGameError("");
     renderPlayers(state);
     renderPlayedCards(state);
+    renderMoveLog(state);
     renderHand(gameId, state);
     renderPassControls(gameId, state);
   }
@@ -240,6 +265,16 @@
     const botLabel = player.is_bot ? " Bot" : "";
     const disconnectedLabel = player.disconnected_at && !player.is_bot ? " Offline" : "";
     return player.display_name + botLabel + disconnectedLabel + " | " + String(player.total_score) + " total, " + String(player.hand_score) + " hand";
+  }
+  function eventTime(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+    return date.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit"
+    });
   }
   function setGameError(message) {
     getRequiredElement("game-error").textContent = message;

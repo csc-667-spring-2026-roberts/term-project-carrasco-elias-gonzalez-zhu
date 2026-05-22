@@ -170,7 +170,10 @@ a:hover {
   background: var(--surface-soft);
   font: inherit;
   color: var(--text);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .form-input:focus {
@@ -191,7 +194,9 @@ a:hover {
   font: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.05s ease, background 0.2s ease;
+  transition:
+    transform 0.05s ease,
+    background 0.2s ease;
 }
 
 .btn:active {
@@ -279,7 +284,6 @@ a:hover {
   }
 }
 
-
 /* NAVBAR - BLACK STYLE */
 
 .site-nav {
@@ -338,7 +342,7 @@ a:hover {
 .enter-btn {
   margin-left: 10px;
   padding: 6px 10px;
-  background: #4CAF50;
+  background: #4caf50;
   color: white;
   border: none;
   border-radius: 4px;
@@ -384,7 +388,6 @@ a:hover {
   top: 50%;
   transform: translateY(-50%);
 }
-
 
 /* Card container */
 .games-card {
@@ -477,10 +480,18 @@ a:hover {
   border-radius: 50%;
 }
 
-.avatar-1 { background: #ff6b6b; }
-.avatar-2 { background: #4ecdc4; }
-.avatar-3 { background: #ffe66d; }
-.avatar-you { background: #5f6caf; }
+.avatar-1 {
+  background: #ff6b6b;
+}
+.avatar-2 {
+  background: #4ecdc4;
+}
+.avatar-3 {
+  background: #ffe66d;
+}
+.avatar-you {
+  background: #5f6caf;
+}
 
 .game-page {
   width: min(1100px, calc(100% - 32px));
@@ -526,9 +537,7 @@ a:hover {
   min-height: 500px;
   border: 10px solid #17351f;
   border-radius: 32px;
-  background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 42%),
-    #1f7a3f;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 42%), #1f7a3f;
   box-shadow: 0 18px 36px rgba(15, 23, 42, 0.22);
   overflow: hidden;
 }
@@ -627,6 +636,87 @@ a:hover {
   font-weight: 700;
 }
 
+.move-log-panel {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.move-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.move-log-header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.move-log {
+  max-height: 150px;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.move-log-item,
+.move-log-empty {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  padding: 8px 10px;
+  border-left: 4px solid #94a3b8;
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.move-log-empty {
+  grid-template-columns: 1fr;
+  color: var(--muted);
+}
+
+.move-log-time {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.move-log-message {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.move-log-play {
+  border-left-color: #2563eb;
+}
+
+.move-log-pass {
+  border-left-color: #7c3aed;
+}
+
+.move-log-trick,
+.move-log-score {
+  border-left-color: #b45309;
+}
+
+.move-log-leave {
+  border-left-color: #dc2626;
+}
+
 .hand-panel {
   margin-top: 22px;
   padding: 18px;
@@ -697,7 +787,10 @@ a:hover {
 
 .hand-card {
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    opacity 0.12s ease;
 }
 
 .hand-card:hover:not(:disabled) {

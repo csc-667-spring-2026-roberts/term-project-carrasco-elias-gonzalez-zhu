@@ -40,6 +40,8 @@ export type CardSuit = "clubs" | "diamonds" | "hearts" | "spades";
 
 export type PassDirection = "left" | "right" | "across" | "hold";
 
+export type GameEventType = "system" | "pass" | "play" | "trick" | "score" | "leave";
+
 export interface Game {
   id: number;
   status: GameStatus;
@@ -97,6 +99,18 @@ export interface GameCard {
   is_playable: boolean;
 }
 
+export interface GameEvent {
+  id: number;
+  game_id: number;
+  hand_no: number;
+  trick_no: number | null;
+  actor_seat: number | null;
+  actor_user_id: number | null;
+  event_type: GameEventType;
+  message: string;
+  created_at: Date;
+}
+
 export interface GameState {
   game: {
     id: number;
@@ -115,6 +129,7 @@ export interface GameState {
   players: GamePlayer[];
   hand: GameCard[];
   playedCards: GameCard[];
+  moveLog: GameEvent[];
   currentUserId: number;
   currentUserSeat: number;
   canPlay: boolean;

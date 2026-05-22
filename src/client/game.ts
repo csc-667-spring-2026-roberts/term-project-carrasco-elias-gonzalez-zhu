@@ -2,6 +2,7 @@ type GameStatus = "waiting" | "in_progress" | "finished";
 type GamePhase = "waiting" | "passing" | "playing" | "finished";
 type CardSuit = "clubs" | "diamonds" | "hearts" | "spades";
 type PassDirection = "left" | "right" | "across" | "hold";
+type GameEventType = "system" | "pass" | "play" | "trick" | "score" | "leave";
 
 type GameInfo = {
   id: number;
@@ -38,11 +39,24 @@ type GameCard = {
   is_playable: boolean;
 };
 
+type GameEvent = {
+  id: number;
+  game_id: number;
+  hand_no: number;
+  trick_no: number | null;
+  actor_seat: number | null;
+  actor_user_id: number | null;
+  event_type: GameEventType;
+  message: string;
+  created_at: string;
+};
+
 type GameState = {
   game: GameInfo;
   players: Player[];
   hand: GameCard[];
   playedCards: GameCard[];
+  moveLog: GameEvent[];
   currentUserId: number;
   currentUserSeat: number;
   canPlay: boolean;
@@ -304,12 +318,44 @@ function renderPlayers(state: GameState): void {
   }
 }
 
+function renderMoveLog(state: GameState): void {
+  const log = getRequiredElement("move-log");
+  clearElement(log);
+
+  if (state.moveLog.length === 0) {
+    const emptyItem = document.createElement("li");
+    emptyItem.className = "move-log-empty";
+    emptyItem.textContent = "No moves yet.";
+    log.appendChild(emptyItem);
+    return;
+  }
+
+  state.moveLog.forEach((event) => {
+    const item = document.createElement("li");
+    item.className = "move-log-item move-log-" + event.event_type;
+
+    const time = document.createElement("span");
+    time.className = "move-log-time";
+    time.textContent = eventTime(event.created_at);
+
+    const message = document.createElement("span");
+    message.className = "move-log-message";
+    message.textContent = event.message;
+
+    item.append(time, message);
+    log.appendChild(item);
+  });
+
+  log.scrollTop = log.scrollHeight;
+}
+
 function renderState(gameId: number, state: GameState): void {
   getRequiredElement("game-status").textContent = state.statusText;
   getRequiredElement("game-event").textContent = state.game.last_event ?? "";
   setGameError("");
   renderPlayers(state);
   renderPlayedCards(state);
+  renderMoveLog(state);
   renderHand(gameId, state);
   renderPassControls(gameId, state);
 }
@@ -385,6 +431,19 @@ function playerLabel(player: Player): string {
     String(player.hand_score) +
     " hand"
   );
+}
+
+function eventTime(value: string): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function setGameError(message: string): void {
