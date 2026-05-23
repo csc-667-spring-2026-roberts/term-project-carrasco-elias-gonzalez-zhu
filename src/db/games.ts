@@ -11,6 +11,7 @@ import type {
   CardSuit,
   Game,
   GameCard,
+  GameChatMessage,
   GameEvent,
   GameEventType,
   GameListItem,
@@ -23,10 +24,16 @@ const REQUIRED_PLAYERS = 4;
 const CARDS_PER_PLAYER = 13;
 const PASS_CARD_COUNT = 3;
 const BOT_ACTION_LIMIT = 600;
+const BOT_ACTION_DELAY_MS = envNumber("BOT_ACTION_DELAY_MS", 1500);
 const MOVE_LOG_LIMIT = 20;
+const CHAT_MESSAGE_LIMIT = 50;
+const CHAT_MESSAGE_MAX_LENGTH = 300;
 
 type Queryable = Pick<typeof db, "manyOrNone" | "none" | "one" | "oneOrNone">;
 type GameCardRow = Omit<GameCard, "is_playable">;
+export type BotActionCallback = (gameId: number) => Promise<void> | void;
+
+const runningBotGames = new Set<number>();
 
 interface CountRow {
   count: number;
@@ -85,7 +92,7 @@ export async function createGame(userId: number): Promise<Game> {
 }
 
 export async function joinOrCreateGame(userId: number): Promise<Game> {
-  const game = await db.tx(async (t) => {
+  return db.tx(async (t) => {
     const reclaimedGame = await reclaimBotSeat(t, userId);
 
     if (reclaimedGame) {
@@ -112,10 +119,6 @@ export async function joinOrCreateGame(userId: number): Promise<Game> {
 
     return findGameById(t, game.id);
   });
-
-  await runBotsForGame(game.id);
-
-  return findGameById(db, game.id);
 }
 
 export async function listGames(): Promise<GameListItem[]> {
@@ -242,8 +245,6 @@ export async function passCards(
       await beginPlayPhase(t, game, "All players passed. The two of clubs leads.");
     }
   });
-
-  await runBotsForGame(gameId);
 }
 
 export async function playCard(gameId: number, userId: number, gameCardId: number): Promise<void> {
@@ -282,16 +283,55 @@ export async function playCard(gameId: number, userId: number, gameCardId: numbe
     await logCardPlayed(t, game, membership.seat, userId, card);
     await advanceAfterPlay(t, game, currentTrick, card, membership.seat, trickOrder);
   });
+}
 
-  await runBotsForGame(gameId);
+export async function listGameChatMessages(
+  gameId: number,
+  userId: number,
+): Promise<GameChatMessage[]> {
+  await ensureGameMember(db, gameId, userId);
+
+  return listRecentChatMessages(db, gameId);
+}
+
+export async function sendGameChatMessage(
+  gameId: number,
+  userId: number,
+  rawMessage: string,
+): Promise<GameChatMessage> {
+  const message = validateChatMessage(rawMessage);
+
+  return db.tx(async (t) => {
+    await ensureGameMember(t, gameId, userId);
+
+    return t.one<GameChatMessage>(
+      `
+        INSERT INTO game_chat_messages (game_id, user_id, message)
+        VALUES ($1, $2, $3)
+        RETURNING
+          id,
+          game_id,
+          user_id,
+          (
+            SELECT display_name
+            FROM users
+            WHERE id = $2
+          ) AS display_name,
+          (
+            SELECT avatar_emoji
+            FROM users
+            WHERE id = $2
+          ) AS avatar_emoji,
+          message,
+          created_at
+      `,
+      [gameId, userId, message],
+    );
+  });
 }
 
 export async function leaveGame(gameId: number, userId: number): Promise<void> {
-  const converted = await convertSeatToBot(gameId, userId, "left the game", false, true);
-
-  if (converted) {
-    await runBotsForGame(gameId);
-  }
+  await convertSeatToBot(gameId, userId, "left the game", false, true);
 }
 
 export async function markGameUserConnected(gameId: number, userId: number): Promise<void> {
@@ -324,13 +364,7 @@ export async function replaceDisconnectedUserWithBot(
   gameId: number,
   userId: number,
 ): Promise<boolean> {
-  const converted = await convertSeatToBot(gameId, userId, "was replaced by a bot", true);
-
-  if (converted) {
-    await runBotsForGame(gameId);
-  }
-
-  return converted;
+  return convertSeatToBot(gameId, userId, "was replaced by a bot", true);
 }
 
 async function addUserToGame(
@@ -490,6 +524,46 @@ function canSeatPass(game: Game, hasPassed: boolean, handCount: number): boolean
     !hasPassed &&
     handCount >= PASS_CARD_COUNT
   );
+}
+
+async function ensureGameMember(
+  database: Queryable,
+  gameId: number,
+  userId: number,
+): Promise<void> {
+  const game = await findGameByIdOrNull(database, gameId);
+
+  if (!game) {
+    throw new GameActionError(404, "Game not found.");
+  }
+
+  const membership = await findUserSeat(database, gameId, userId);
+
+  if (!membership) {
+    throw new GameActionError(403, "You are not in this game.");
+  }
+}
+
+async function delayBotAction(): Promise<void> {
+  if (BOT_ACTION_DELAY_MS <= 0) {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, BOT_ACTION_DELAY_MS);
+  });
+}
+
+function envNumber(name: string, defaultValue: number): number {
+  const rawValue = process.env[name];
+
+  if (rawValue === undefined || rawValue.trim() === "") {
+    return defaultValue;
+  }
+
+  const value = Number(rawValue);
+
+  return Number.isFinite(value) && value >= 0 ? value : defaultValue;
 }
 
 function cardPoints(card: GameCardRow): number {
@@ -1081,12 +1155,48 @@ async function listRecentGameEvents(database: Queryable, gameId: number): Promis
   );
 }
 
+async function listRecentChatMessages(
+  database: Queryable,
+  gameId: number,
+): Promise<GameChatMessage[]> {
+  return database.manyOrNone<GameChatMessage>(
+    `
+      SELECT
+        id,
+        game_id,
+        user_id,
+        display_name,
+        avatar_emoji,
+        message,
+        created_at
+      FROM (
+        SELECT
+          gcm.id,
+          gcm.game_id,
+          gcm.user_id,
+          u.display_name,
+          u.avatar_emoji,
+          gcm.message,
+          gcm.created_at
+        FROM game_chat_messages gcm
+        LEFT JOIN users u ON u.id = gcm.user_id
+        WHERE gcm.game_id = $1
+        ORDER BY gcm.created_at DESC, gcm.id DESC
+        LIMIT $2
+      ) recent
+      ORDER BY created_at ASC, id ASC
+    `,
+    [gameId, CHAT_MESSAGE_LIMIT],
+  );
+}
+
 async function listPlayers(database: Queryable, gameId: number): Promise<GamePlayer[]> {
   return database.manyOrNone<GamePlayer>(
     `
       SELECT
         gu.user_id,
         u.display_name,
+        u.avatar_emoji,
         gu.seat,
         gu.total_score,
         gu.hand_score,
@@ -1300,14 +1410,55 @@ async function maybeStartGame(database: Queryable, gameId: number): Promise<void
   await startNewHand(database, game, players, "Game started.");
 }
 
-async function runBotsForGame(gameId: number): Promise<void> {
-  for (let actionCount = 0; actionCount < BOT_ACTION_LIMIT; actionCount += 1) {
-    const acted = await runSingleBotAction(gameId);
-
-    if (!acted) {
-      return;
-    }
+export async function runBotsForGame(
+  gameId: number,
+  onBotAction?: BotActionCallback,
+): Promise<void> {
+  if (runningBotGames.has(gameId)) {
+    return;
   }
+
+  runningBotGames.add(gameId);
+
+  try {
+    for (let actionCount = 0; actionCount < BOT_ACTION_LIMIT; actionCount += 1) {
+      await delayBotAction();
+
+      const acted = await runSingleBotAction(gameId);
+
+      if (!acted) {
+        return;
+      }
+
+      await onBotAction?.(gameId);
+    }
+
+    console.warn(`Bot action limit reached for game ${String(gameId)}.`);
+  } finally {
+    runningBotGames.delete(gameId);
+  }
+}
+
+export async function runHumanTimeoutAction(gameId: number): Promise<boolean> {
+  return db.tx(async (t) => {
+    const game = await findGameForUpdate(t, gameId);
+
+    if (game.status !== "in_progress") {
+      return false;
+    }
+
+    const players = await listPlayers(t, gameId);
+
+    if (game.phase === "passing") {
+      return runHumanTimeoutPassAction(t, game, players);
+    }
+
+    if (game.phase === "playing") {
+      return runHumanTimeoutPlayAction(t, game, players);
+    }
+
+    return false;
+  });
 }
 
 async function runSingleBotAction(gameId: number): Promise<boolean> {
@@ -1370,6 +1521,46 @@ async function runBotPassAction(
   return true;
 }
 
+async function runHumanTimeoutPassAction(
+  database: Queryable,
+  game: Game,
+  players: GamePlayer[],
+): Promise<boolean> {
+  const human = players.find(
+    (player) => !player.is_bot && player.disconnected_at === null && !player.has_passed,
+  );
+
+  if (!human || game.pass_direction === "hold") {
+    return false;
+  }
+
+  const hand = await listHandRowsForUpdate(database, game.id, human.seat);
+  const gameCardIds = selectBotPassCards(hand);
+
+  if (gameCardIds.length !== PASS_CARD_COUNT) {
+    return false;
+  }
+
+  await markCardsForPassing(database, game, human.seat, gameCardIds);
+  await logGameEvent(
+    database,
+    game,
+    "pass",
+    `${playerLogNameBySeat(players, human.seat)} timed out and auto-passed ${String(
+      PASS_CARD_COUNT,
+    )} cards.`,
+    human.seat,
+    human.user_id,
+  );
+
+  if (await allPlayersPassed(database, game.id)) {
+    await applyPassedCards(database, game.id);
+    await beginPlayPhase(database, game, "All players passed. The two of clubs leads.");
+  }
+
+  return true;
+}
+
 async function runBotPlayAction(
   database: Queryable,
   game: Game,
@@ -1394,6 +1585,42 @@ async function runBotPlayAction(
 
   await moveCardToTrick(database, game, card, trickOrder, playedOrder);
   await logCardPlayed(database, game, currentPlayer.seat, currentPlayer.user_id, card, players);
+  await advanceAfterPlay(database, game, currentTrick, card, currentPlayer.seat, trickOrder);
+
+  return true;
+}
+
+async function runHumanTimeoutPlayAction(
+  database: Queryable,
+  game: Game,
+  players: GamePlayer[],
+): Promise<boolean> {
+  const currentPlayer = players.find((player) => player.seat === game.current_turn_seat);
+
+  if (!currentPlayer || currentPlayer.is_bot || currentPlayer.disconnected_at !== null) {
+    return false;
+  }
+
+  const hand = await listHandRowsForUpdate(database, game.id, currentPlayer.seat);
+  const currentTrick = await listCurrentTrickRows(database, game);
+  const card = selectBotPlayableCard(game, hand, currentTrick);
+
+  if (!card) {
+    return false;
+  }
+
+  const trickOrder = currentTrick.length + 1;
+  const playedOrder = await nextPlayedOrder(database, game.id);
+
+  await moveCardToTrick(database, game, card, trickOrder, playedOrder);
+  await logGameEvent(
+    database,
+    game,
+    "play",
+    `${playerLogNameBySeat(players, currentPlayer.seat)} timed out and auto-played ${card.label}.`,
+    currentPlayer.seat,
+    currentPlayer.user_id,
+  );
   await advanceAfterPlay(database, game, currentTrick, card, currentPlayer.seat, trickOrder);
 
   return true;
@@ -1833,6 +2060,23 @@ function validatePassRequest(game: Game, gameCardIds: number[]): void {
   if (new Set(gameCardIds).size !== PASS_CARD_COUNT) {
     throw new GameActionError(400, "Choose three different cards to pass.");
   }
+}
+
+function validateChatMessage(rawMessage: string): string {
+  const message = rawMessage.trim();
+
+  if (message.length === 0) {
+    throw new GameActionError(400, "Chat message cannot be empty.");
+  }
+
+  if (message.length > CHAT_MESSAGE_MAX_LENGTH) {
+    throw new GameActionError(
+      400,
+      `Chat message must be ${String(CHAT_MESSAGE_MAX_LENGTH)} characters or fewer.`,
+    );
+  }
+
+  return message;
 }
 
 function validatePlayTurn(game: Game, seat: number): void {

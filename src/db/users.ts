@@ -18,21 +18,22 @@ export async function create(
   email: string,
   passwordHash: string,
   displayName: string,
+  avatarEmoji: string | null,
 ): Promise<User> {
   return db.one<User>(
     `
-      INSERT INTO users (email, password_hash, display_name)
-      VALUES ($1, $2, $3)
-      RETURNING id, email, display_name, created_at
+      INSERT INTO users (email, password_hash, display_name, avatar_emoji)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, email, display_name, avatar_emoji, created_at
     `,
-    [email, passwordHash, displayName],
+    [email, passwordHash, displayName, avatarEmoji],
   );
 }
 
 export async function findByEmail(email: string): Promise<DbUser | null> {
   return db.oneOrNone<DbUser>(
     `
-      SELECT id, email, password_hash, display_name, created_at
+      SELECT id, email, password_hash, display_name, avatar_emoji, created_at
       FROM users
       WHERE LOWER(email) = LOWER($1)
     `,

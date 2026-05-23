@@ -8,60 +8,101 @@
 
     <main class="game-page" id="game-root" data-game-id="<%= gameId %>">
       <header class="game-header">
-        <div>
-          <h1>
-            Game
-            <%= gameId %>
-          </h1>
+        <div class="game-header-info">
+          <h1 class="game-title">Game <%= gameId %></h1>
           <p id="game-status" class="game-status">Loading table...</p>
           <p id="game-event" class="game-event"></p>
         </div>
         <div class="game-actions">
           <button id="leave-game" class="btn btn-secondary btn-small" type="button">Leave</button>
-          <a class="btn btn-secondary btn-small" href="/">Lobby</a>
+          <button id="play-again" class="btn btn-primary btn-small" type="button" hidden>
+            Play Again
+          </button>
+          <button id="return-lobby" class="btn btn-secondary btn-small" type="button" hidden>
+            Return to Lobby
+          </button>
         </div>
       </header>
 
-      <section class="hearts-table" aria-label="Hearts table">
-        <div class="table-seat table-seat-top" data-seat="3">
-          <span class="seat-avatar">♣</span>
-          <span class="seat-name">Seat 3</span>
+      <div class="game-layout">
+        <div class="game-main">
+          <section class="hearts-table" aria-label="Hearts table">
+            <div class="table-seat table-seat-top" data-seat="3">
+              <span class="seat-avatar">♣</span>
+              <span class="seat-details">
+                <span class="seat-name">Seat 3</span>
+                <span class="seat-score"></span>
+              </span>
+            </div>
+
+            <div class="table-seat table-seat-left" data-seat="2">
+              <span class="seat-avatar">♦</span>
+              <span class="seat-details">
+                <span class="seat-name">Seat 2</span>
+                <span class="seat-score"></span>
+              </span>
+            </div>
+
+            <div class="table-seat table-seat-right" data-seat="4">
+              <span class="seat-avatar">♠</span>
+              <span class="seat-details">
+                <span class="seat-name">Seat 4</span>
+                <span class="seat-score"></span>
+              </span>
+            </div>
+
+            <div class="table-seat table-seat-bottom" data-seat="1">
+              <span class="seat-avatar">♥</span>
+              <span class="seat-details">
+                <span class="seat-name">Seat 1</span>
+                <span class="seat-score"></span>
+              </span>
+            </div>
+
+            <div class="table-center">
+              <div id="played-cards" class="played-cards"></div>
+            </div>
+          </section>
+
+          <section id="final-scoreboard" class="final-scoreboard" hidden></section>
+
+          <section class="hand-panel">
+            <div class="hand-header">
+              <h2>Your hand</h2>
+              <p id="game-error" class="game-error" role="status"></p>
+            </div>
+            <div id="pass-controls" class="pass-controls"></div>
+            <div id="player-hand" class="player-hand"></div>
+          </section>
         </div>
 
-        <div class="table-seat table-seat-left" data-seat="2">
-          <span class="seat-avatar">♦</span>
-          <span class="seat-name">Seat 2</span>
-        </div>
-
-        <div class="table-seat table-seat-right" data-seat="4">
-          <span class="seat-avatar">♠</span>
-          <span class="seat-name">Seat 4</span>
-        </div>
-
-        <div class="table-seat table-seat-bottom" data-seat="1">
-          <span class="seat-avatar">♥</span>
-          <span class="seat-name">Seat 1</span>
-        </div>
-
-        <div class="table-center">
-          <div id="played-cards" class="played-cards"></div>
-        </div>
-      </section>
+        <aside class="chat-panel" aria-labelledby="chat-title">
+          <div class="chat-header">
+            <h2 id="chat-title">Table chat</h2>
+            <p id="chat-status" class="chat-status" role="status"></p>
+          </div>
+          <ol id="chat-messages" class="chat-messages"></ol>
+          <form id="chat-form" class="chat-form">
+            <label class="sr-only" for="chat-input">Message</label>
+            <input
+              id="chat-input"
+              class="chat-input"
+              name="message"
+              type="text"
+              maxlength="300"
+              autocomplete="off"
+              placeholder="Message players..."
+            />
+            <button id="chat-send" class="btn btn-primary btn-small" type="submit">Send</button>
+          </form>
+        </aside>
+      </div>
 
       <section class="move-log-panel" aria-labelledby="move-log-title">
         <div class="move-log-header">
           <h2 id="move-log-title">Move log</h2>
         </div>
         <ol id="move-log" class="move-log"></ol>
-      </section>
-
-      <section class="hand-panel">
-        <div class="hand-header">
-          <h2>Your hand</h2>
-          <p id="game-error" class="game-error" role="status"></p>
-        </div>
-        <div id="pass-controls" class="pass-controls"></div>
-        <div id="player-hand" class="player-hand"></div>
       </section>
     </main>
 

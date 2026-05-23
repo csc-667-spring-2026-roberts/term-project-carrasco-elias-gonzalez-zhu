@@ -8,49 +8,68 @@ import { wantsJson } from "../utils/http.js";
 export const authRouter = Router();
 
 const BCRYPT_ROUNDS = Number(process.env.BCRYPT_ROUNDS) || 10;
+const AVATAR_OPTIONS = ["😎", "🤖", "👑", "🐸", "🦊", "🐱", "🐼", "🦁", "👻", "🐧", "🐵", "🦄"];
+const AVATAR_MAX_LENGTH = 16;
 
-function toSessionUser(user: Pick<User, "id" | "email" | "display_name">): {
+function toSessionUser(user: Pick<User, "id" | "email" | "display_name" | "avatar_emoji">): {
   id: number;
   email: string;
   display_name: string;
+  avatar_emoji: string | null;
 } {
   return {
     id: user.id,
     email: user.email,
     display_name: user.display_name,
+    avatar_emoji: user.avatar_emoji,
   };
 }
 
-function jsonUser(user: User): { id: number; email: string; display_name: string } {
+function jsonUser(user: User): {
+  id: number;
+  email: string;
+  display_name: string;
+  avatar_emoji: string | null;
+} {
   return {
     id: user.id,
     email: user.email,
     display_name: user.display_name,
+    avatar_emoji: user.avatar_emoji,
   };
 }
 
 async function handlePostRegister(request: Request, response: Response): Promise<void> {
-  const { email, password, display_name } = request.body as {
+  const { email, password, display_name, avatar_emoji } = request.body as {
     email?: string;
     password?: string;
     display_name?: string;
+    avatar_emoji?: string;
   };
 
   const emailTrimmed = typeof email === "string" ? email.trim() : "";
   const passwordRaw = typeof password === "string" ? password : "";
   const displayTrimmed = typeof display_name === "string" ? display_name.trim() : "";
+  const avatar = parseAvatarEmoji(avatar_emoji);
+  const avatarEmoji = avatar.value;
   const emailNormalized = emailTrimmed.toLowerCase();
 
   if (!emailNormalized || !passwordRaw || !displayTrimmed) {
-    if (wantsJson(request)) {
-      response.status(400).json({ error: "Email, password, and display name are required." });
-      return;
-    }
+    respondRegisterError(
+      request,
+      response,
+      400,
+      "Email, password, and display name are required.",
+      {
+        selectedAvatar: avatarEmoji,
+      },
+    );
+    return;
+  }
 
-    response.status(400).render("auth/register", {
-      title: "Register",
-      user: request.session.user ?? null,
-      error: "Email, password, and display name are required.",
+  if (avatar.error) {
+    respondRegisterError(request, response, 400, "Choose one of the preset avatar emojis.", {
+      selectedAvatar: avatarEmoji,
     });
     return;
   }
@@ -58,21 +77,14 @@ async function handlePostRegister(request: Request, response: Response): Promise
   const duplicate = await users.existing(emailNormalized);
 
   if (duplicate) {
-    if (wantsJson(request)) {
-      response.status(400).json({ error: "An account with that email already exists." });
-      return;
-    }
-
-    response.status(400).render("auth/register", {
-      title: "Register",
-      user: request.session.user ?? null,
-      error: "An account with that email already exists.",
+    respondRegisterError(request, response, 400, "An account with that email already exists.", {
+      selectedAvatar: avatarEmoji,
     });
     return;
   }
 
   const passwordHash = await bcrypt.hash(passwordRaw, BCRYPT_ROUNDS);
-  const user = await users.create(emailNormalized, passwordHash, displayTrimmed);
+  const user = await users.create(emailNormalized, passwordHash, displayTrimmed, avatarEmoji);
 
   request.session.user = toSessionUser(user);
 
@@ -145,6 +157,8 @@ authRouter.get("/register", (_request: Request, response: Response) => {
   response.render("auth/register", {
     title: "Register",
     user: null,
+    avatarOptions: AVATAR_OPTIONS,
+    selectedAvatar: null,
     error: undefined,
   });
 });
@@ -198,3 +212,42 @@ authRouter.get("/me", (request: Request, response: Response) => {
     user: request.session.user,
   });
 });
+
+function parseAvatarEmoji(value: unknown): { value: string | null; error: boolean } {
+  if (typeof value !== "string") {
+    return { value: null, error: false };
+  }
+
+  const trimmed = value.trim();
+
+  if (trimmed.length === 0) {
+    return { value: null, error: false };
+  }
+
+  if (trimmed.length > AVATAR_MAX_LENGTH || !AVATAR_OPTIONS.includes(trimmed)) {
+    return { value: trimmed, error: true };
+  }
+
+  return { value: trimmed, error: false };
+}
+
+function respondRegisterError(
+  request: Request,
+  response: Response,
+  status: number,
+  error: string,
+  options: { selectedAvatar: string | null },
+): void {
+  if (wantsJson(request)) {
+    response.status(status).json({ error });
+    return;
+  }
+
+  response.status(status).render("auth/register", {
+    title: "Register",
+    user: request.session.user ?? null,
+    avatarOptions: AVATAR_OPTIONS,
+    selectedAvatar: options.selectedAvatar,
+    error,
+  });
+}

@@ -46,6 +46,18 @@
             <input id="display_name" type="text" name="display_name" class="form-input" required />
           </div>
 
+          <fieldset class="form-group emoji-field">
+            <legend class="form-label">Avatar Emoji</legend>
+            <div class="emoji-options">
+              <% avatarOptions.forEach((emoji) => { %>
+              <label class="emoji-option">
+                <input type="radio" name="avatar_emoji" value="<%= emoji %>" />
+                <span><%= emoji %></span>
+              </label>
+              <% }) %>
+            </div>
+          </fieldset>
+
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">Register</button>
           </div>

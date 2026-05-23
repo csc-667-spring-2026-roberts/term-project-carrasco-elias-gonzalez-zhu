@@ -6,6 +6,8 @@ import {
   markGameUserConnected,
   markGameUserDisconnected,
   replaceDisconnectedUserWithBot,
+  runBotsForGame,
+  runHumanTimeoutAction,
 } from "../db/games.js";
 
 type SseClient = {
@@ -16,6 +18,7 @@ type SseClient = {
 };
 
 const BOT_TAKEOVER_GRACE_MS = 60_000;
+const HUMAN_TURN_TIMEOUT_MS = envNumber("HUMAN_TURN_TIMEOUT_MS", 0);
 
 const sseRouter = Router();
 
@@ -23,6 +26,8 @@ let nextClientId = 1;
 const clients = new Map<number, SseClient>();
 const gameClientCounts = new Map<string, number>();
 const disconnectTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const humanTurnTimers = new Map<number, { timer: ReturnType<typeof setTimeout>; token: number }>();
+let nextHumanTurnTimerToken = 1;
 
 export function broadcastSse(data: unknown): void {
   const message = `data: ${JSON.stringify(data)}\n\n`;
@@ -30,6 +35,37 @@ export function broadcastSse(data: unknown): void {
   for (const client of clients.values()) {
     client.response.write(message);
   }
+}
+
+export function clearHumanTurnTimeout(gameId: number): void {
+  const existing = humanTurnTimers.get(gameId);
+
+  if (existing) {
+    clearTimeout(existing.timer);
+    humanTurnTimers.delete(gameId);
+  }
+}
+
+export function scheduleGameAutomation(gameId: number): void {
+  clearHumanTurnTimeout(gameId);
+
+  void runBotsForGame(gameId, (updatedGameId) => {
+    broadcastSse({
+      type: "game_updated",
+      gameId: updatedGameId,
+    });
+  })
+    .then(async () => {
+      broadcastSse({
+        type: "games_updated",
+        games: await listGames(),
+      });
+      scheduleHumanTurnTimeout(gameId);
+    })
+    .catch((error: unknown) => {
+      console.error("Error running game automation:", error);
+      scheduleHumanTurnTimeout(gameId);
+    });
 }
 
 sseRouter.get("/", requireAuth, (request: Request, response: Response) => {
@@ -92,6 +128,7 @@ async function handleGameSseConnected(gameId: number, userId: number): Promise<v
 
   gameClientCounts.set(key, (gameClientCounts.get(key) ?? 0) + 1);
   await markGameUserConnected(gameId, userId);
+  scheduleGameAutomation(gameId);
 }
 
 async function handleGameSseClosed(gameId: number, userId: number): Promise<void> {
@@ -133,6 +170,8 @@ function scheduleBotTakeover(gameId: number, userId: number): void {
           type: "games_updated",
           games: await listGames(),
         });
+
+        scheduleGameAutomation(gameId);
       })
       .catch((error: unknown) => {
         console.error("Error replacing disconnected player with bot:", error);
@@ -144,6 +183,62 @@ function scheduleBotTakeover(gameId: number, userId: number): void {
 
 function gameUserKey(gameId: number, userId: number): string {
   return `${String(gameId)}:${String(userId)}`;
+}
+
+function scheduleHumanTurnTimeout(gameId: number): void {
+  clearHumanTurnTimeout(gameId);
+
+  if (HUMAN_TURN_TIMEOUT_MS <= 0) {
+    return;
+  }
+
+  const token = nextHumanTurnTimerToken;
+  nextHumanTurnTimerToken += 1;
+
+  const timer = setTimeout(() => {
+    void handleHumanTurnTimeout(gameId, token);
+  }, HUMAN_TURN_TIMEOUT_MS);
+
+  humanTurnTimers.set(gameId, { timer, token });
+}
+
+async function handleHumanTurnTimeout(gameId: number, token: number): Promise<void> {
+  const scheduled = humanTurnTimers.get(gameId);
+
+  if (!scheduled || scheduled.token !== token) {
+    return;
+  }
+
+  humanTurnTimers.delete(gameId);
+
+  try {
+    const acted = await runHumanTimeoutAction(gameId);
+
+    if (!acted) {
+      return;
+    }
+
+    broadcastSse({
+      type: "game_updated",
+      gameId,
+    });
+
+    scheduleGameAutomation(gameId);
+  } catch (error: unknown) {
+    console.error("Error running human turn timeout:", error);
+  }
+}
+
+function envNumber(name: string, defaultValue: number): number {
+  const rawValue = process.env[name];
+
+  if (rawValue === undefined || rawValue.trim() === "") {
+    return defaultValue;
+  }
+
+  const value = Number(rawValue);
+
+  return Number.isFinite(value) && value >= 0 ? value : defaultValue;
 }
 
 function parseGameId(request: Request): number | null {

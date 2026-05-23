@@ -4,7 +4,6 @@
 
   Constraints:
   - Do NOT remove or rename required IDs:
-      - #games-list
       - #create-game
   - Do NOT remove script: /js/lobby.js
   - Do NOT remove usage of "user", "title", or "error"
@@ -26,7 +25,12 @@
           <h1>Lobby</h1>
           <p class="lobby-subtitle">
             <% if (user && user.display_name) { %> Welcome,
-            <strong><%= user.display_name %></strong>. You’re ready to join a game.
+            <strong>
+              <% if (user.avatar_emoji) { %><span class="user-avatar-emoji"
+                ><%= user.avatar_emoji %></span
+              ><% } %>
+              <%= user.display_name %> </strong
+            >. You’re ready to join a game.
             <% } else { %>
             Welcome to the lobby.
             <% } %>
@@ -37,36 +41,10 @@
         <div class="alert alert-error"><%= error %></div>
         <% } %>
 
-        <!-- TODO Breanna:
-             Use #create-game and #games-list in src/client/lobby.ts for M8 lobby behavior. -->
-
-        <div class="games-card">
-          <div class="games-header">
-            <h2>Games</h2>
-            <button id="create-game" class="create-btn">Play Hearts</button>
-          </div>
-
-          <div id="games-list" class="games-list">
-            <!-- Games will be rendered here by src/client/lobby.ts -->
-          </div>
-          <!-- ADD TEMPLATE HERE -->
-          <template id="game-template">
-            <div class="game-item">
-              <div class="game-info">
-                <span class="game-title"></span>
-                <span class="game-players"></span>
-              </div>
-              <button class="join-btn">Join</button>
-            </div>
-          </template>
-
-          <template id="empty-template">
-            <p class="empty">No games yet.</p>
-          </template>
-
-          <template id="error-template">
-            <p class="empty">Error loading games</p>
-          </template>
+        <div class="lobby-action-panel">
+          <button id="create-game" class="create-btn lobby-play-btn" type="button">
+            Play Hearts
+          </button>
         </div>
       </section>
     </main>

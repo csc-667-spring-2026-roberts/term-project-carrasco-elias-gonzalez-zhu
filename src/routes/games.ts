@@ -4,11 +4,13 @@ import {
   getGameState,
   joinOrCreateGame,
   leaveGame,
+  listGameChatMessages,
   listGames,
   passCards,
   playCard,
+  sendGameChatMessage,
 } from "../db/games.js";
-import { broadcastSse } from "./sse.js";
+import { broadcastSse, clearHumanTurnTimeout, scheduleGameAutomation } from "./sse.js";
 
 export const gamesRouter = Router();
 
@@ -18,6 +20,10 @@ interface PlayCardRequestBody {
 
 interface PassCardsRequestBody {
   gameCardIds?: unknown;
+}
+
+interface ChatRequestBody {
+  message?: unknown;
 }
 
 async function handleGetGames(request: Request, response: Response): Promise<void> {
@@ -61,6 +67,8 @@ async function handlePostGames(request: Request, response: Response): Promise<vo
   response.status(201).json({
     game,
   });
+
+  scheduleGameAutomation(game.id);
 }
 
 async function handleGetGameState(request: Request, response: Response): Promise<void> {
@@ -87,6 +95,60 @@ async function handleGetGameState(request: Request, response: Response): Promise
   });
 }
 
+async function handleGetGameChat(request: Request, response: Response): Promise<void> {
+  if (!request.session.user) {
+    response.status(401).json({
+      error: "Not authenticated.",
+    });
+    return;
+  }
+
+  const gameId = Number(request.params.id);
+
+  if (!Number.isInteger(gameId)) {
+    response.status(400).json({
+      error: "Invalid game id.",
+    });
+    return;
+  }
+
+  const messages = await listGameChatMessages(gameId, request.session.user.id);
+
+  response.status(200).json({
+    messages,
+  });
+}
+
+async function handlePostGameChat(request: Request, response: Response): Promise<void> {
+  if (!request.session.user) {
+    response.status(401).json({
+      error: "Not authenticated.",
+    });
+    return;
+  }
+
+  const gameId = Number(request.params.id);
+  const body = request.body as ChatRequestBody;
+
+  if (!Number.isInteger(gameId) || typeof body.message !== "string") {
+    response.status(400).json({
+      error: "Invalid chat message.",
+    });
+    return;
+  }
+
+  const message = await sendGameChatMessage(gameId, request.session.user.id, body.message);
+
+  broadcastSse({
+    type: "chat_updated",
+    gameId,
+  });
+
+  response.status(201).json({
+    message,
+  });
+}
+
 async function handlePostPlayCard(request: Request, response: Response): Promise<void> {
   if (!request.session.user) {
     response.status(401).json({
@@ -107,6 +169,7 @@ async function handlePostPlayCard(request: Request, response: Response): Promise
   }
 
   await playCard(gameId, request.session.user.id, gameCardId);
+  clearHumanTurnTimeout(gameId);
 
   const state = await getGameState(gameId, request.session.user.id);
 
@@ -118,6 +181,8 @@ async function handlePostPlayCard(request: Request, response: Response): Promise
   response.status(200).json({
     state,
   });
+
+  scheduleGameAutomation(gameId);
 }
 
 async function handlePostPassCards(request: Request, response: Response): Promise<void> {
@@ -140,6 +205,7 @@ async function handlePostPassCards(request: Request, response: Response): Promis
   }
 
   await passCards(gameId, request.session.user.id, gameCardIds);
+  clearHumanTurnTimeout(gameId);
 
   const state = await getGameState(gameId, request.session.user.id);
 
@@ -151,6 +217,8 @@ async function handlePostPassCards(request: Request, response: Response): Promis
   response.status(200).json({
     state,
   });
+
+  scheduleGameAutomation(gameId);
 }
 
 async function handlePostLeaveGame(request: Request, response: Response): Promise<void> {
@@ -171,6 +239,7 @@ async function handlePostLeaveGame(request: Request, response: Response): Promis
   }
 
   await leaveGame(gameId, request.session.user.id);
+  clearHumanTurnTimeout(gameId);
 
   const games = await listGames();
 
@@ -187,6 +256,8 @@ async function handlePostLeaveGame(request: Request, response: Response): Promis
   response.status(200).json({
     message: "Seat converted to bot.",
   });
+
+  scheduleGameAutomation(gameId);
 }
 
 gamesRouter.get("/", (request, response, next) => {
@@ -201,6 +272,18 @@ gamesRouter.post("/", (request, response, next) => {
 
 gamesRouter.get("/:id/state", (request, response, next) => {
   void handleGetGameState(request, response).catch((error: unknown) => {
+    handleGameActionError(error, response, next);
+  });
+});
+
+gamesRouter.get("/:id/chat", (request, response, next) => {
+  void handleGetGameChat(request, response).catch((error: unknown) => {
+    handleGameActionError(error, response, next);
+  });
+});
+
+gamesRouter.post("/:id/chat", (request, response, next) => {
+  void handlePostGameChat(request, response).catch((error: unknown) => {
     handleGameActionError(error, response, next);
   });
 });

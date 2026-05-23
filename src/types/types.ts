@@ -12,6 +12,7 @@ export interface User {
   id: number;
   email: string;
   display_name: string;
+  avatar_emoji: string | null;
   created_at: Date;
 }
 
@@ -23,6 +24,7 @@ export interface RegisterRequestBody {
   email?: string;
   password?: string;
   display_name?: string;
+  avatar_emoji?: string;
 }
 
 export interface LoginRequestBody {
@@ -73,6 +75,7 @@ export interface GameListItem {
 export interface GamePlayer {
   user_id: number;
   display_name: string;
+  avatar_emoji: string | null;
   seat: number;
   total_score: number;
   hand_score: number;
@@ -107,6 +110,16 @@ export interface GameEvent {
   actor_seat: number | null;
   actor_user_id: number | null;
   event_type: GameEventType;
+  message: string;
+  created_at: Date;
+}
+
+export interface GameChatMessage {
+  id: number;
+  game_id: number;
+  user_id: number | null;
+  display_name: string | null;
+  avatar_emoji: string | null;
   message: string;
   created_at: Date;
 }

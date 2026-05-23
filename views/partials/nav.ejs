@@ -19,7 +19,12 @@
       <a href="/" class="nav-link">Home</a>
 
       <% if (user) { %>
-      <span class="nav-user"> Welcome, <%= user.display_name || "Player" %> </span>
+      <span class="nav-user">
+        Welcome, <% if (user.avatar_emoji) { %><span class="user-avatar-emoji"
+          ><%= user.avatar_emoji %></span
+        ><% } %>
+        <%= user.display_name || "Player" %>
+      </span>
 
       <form action="/auth/logout" method="POST" class="nav-form">
         <button type="submit" class="btn btn-secondary btn-small">Logout</button>

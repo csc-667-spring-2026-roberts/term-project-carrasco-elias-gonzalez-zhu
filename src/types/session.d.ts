@@ -6,6 +6,7 @@ declare module "express-session" {
       id: number;
       email: string;
       display_name: string;
+      avatar_emoji: string | null;
     };
   }
 }
